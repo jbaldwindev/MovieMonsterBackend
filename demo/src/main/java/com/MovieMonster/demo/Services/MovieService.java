@@ -1,6 +1,7 @@
 package com.MovieMonster.demo.Services;
 
 import com.MovieMonster.demo.Dto.MovieListDto;
+import com.MovieMonster.demo.Models.DashDisplay;
 import com.MovieMonster.demo.Models.Movie;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,15 +20,32 @@ public class MovieService {
     @Value("${tmdb.key}")
     private String tmdbKey;
 
-    public MovieListDto getPopular(int page) {
-        System.out.println(tmdbKey);
+    //change getPopular to fillDash
+    //input enum dashDisplay as parameter
+    //based on the dashDisplay type, change the uri
+    public MovieListDto fillDash(int page, DashDisplay dashDisplay) {
         String pageNum = String.valueOf(page);
-        String jsonResponse = apiClient
-                .get()
-                .uri("/3/discover/movie?include_adult=false&include_video=false&language=en-US&page="
+        String fullUri = "";
+        switch(dashDisplay) {
+            case POPULAR:
+                fullUri = "/3/discover/movie?include_adult=false&include_video=false&language=en-US&page="
                         + pageNum
                         + "&sort_by=popularity.desc&api_key="
-                        + tmdbKey)
+                        + tmdbKey;
+                break;
+            case TOP:
+                fullUri = "/3/discover/movie?include_adult=false&include_video=false&language=en-US&page="
+                        + pageNum
+                        + "&sort_by=vote_average.desc&without_genres=99,10755&vote_count.gte=200&api_key="
+                        + tmdbKey;
+                break;
+            case PLAYING:
+                fullUri = "/3/movie/now_playing?language=en-US&page=" + pageNum + "&api_key=" + tmdbKey;
+                break;
+        }
+        String jsonResponse = apiClient
+                .get()
+                .uri(fullUri)
                 .exchange()
                 .block()
                 .bodyToMono(String.class)
@@ -41,7 +59,8 @@ public class MovieService {
             Movie movie = new Movie();
             movie.setId(results.getJSONObject(i).getInt("id"));
             movie.setOriginalTitle(results.getJSONObject(i).getString("original_title"));
-            movie.setPosterPath(results.getJSONObject(i).getString("poster_path"));
+            String posterPath = "https://image.tmdb.org/t/p/w500" + results.getJSONObject(i).getString("poster_path");
+            movie.setPosterPath(posterPath);
             movie.setOverview(results.getJSONObject(i).getString("overview"));
             ArrayList<Movie> movieList = movieListDto.getMovieList();
             movieList.add(movie);
