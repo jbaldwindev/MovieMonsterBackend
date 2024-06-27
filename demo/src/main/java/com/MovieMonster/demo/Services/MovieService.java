@@ -1,5 +1,6 @@
 package com.MovieMonster.demo.Services;
 
+import com.MovieMonster.demo.Dto.MovieInfoDto;
 import com.MovieMonster.demo.Dto.MovieListDto;
 import com.MovieMonster.demo.Models.DashDisplay;
 import com.MovieMonster.demo.Models.Movie;
@@ -20,9 +21,26 @@ public class MovieService {
     @Value("${tmdb.key}")
     private String tmdbKey;
 
-    //change getPopular to fillDash
-    //input enum dashDisplay as parameter
-    //based on the dashDisplay type, change the uri
+    public MovieInfoDto getMovieInfo(int id) {
+        String fullUri = "/3/movie/" + id + "?language=en-US&api_key=" + tmdbKey;
+        String jsonResponse = apiClient
+                .get()
+                .uri(fullUri)
+                .exchange()
+                .block()
+                .bodyToMono(String.class)
+                .block();
+        System.out.println(jsonResponse);
+        MovieInfoDto movieInfoDto = new MovieInfoDto();
+        JSONObject obj = new JSONObject(jsonResponse);
+        movieInfoDto.setId(obj.getInt("id"));
+        movieInfoDto.setTitle(obj.getString("title"));
+        movieInfoDto.setOverview(obj.getString("overview"));
+        movieInfoDto.setPosterPath(obj.getString("poster_path"));
+        movieInfoDto.setBackdropPath(obj.getString("backdrop_path"));
+        return movieInfoDto;
+    }
+
     public MovieListDto fillDash(int page, DashDisplay dashDisplay) {
         String pageNum = String.valueOf(page);
         String fullUri = "";
