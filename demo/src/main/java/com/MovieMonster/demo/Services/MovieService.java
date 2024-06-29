@@ -1,5 +1,6 @@
 package com.MovieMonster.demo.Services;
 
+import com.MovieMonster.demo.Dto.CastMemberDto;
 import com.MovieMonster.demo.Dto.MovieInfoDto;
 import com.MovieMonster.demo.Dto.MovieListDto;
 import com.MovieMonster.demo.Models.DashDisplay;
@@ -22,7 +23,7 @@ public class MovieService {
     private String tmdbKey;
 
     public MovieInfoDto getMovieInfo(int id) {
-        String fullUri = "/3/movie/" + id + "?language=en-US&api_key=" + tmdbKey;
+        String fullUri = "/3/movie/" + id + "?language=en-US&api_key=" + tmdbKey + "&append_to_response=credits";
         String jsonResponse = apiClient
                 .get()
                 .uri(fullUri)
@@ -30,14 +31,27 @@ public class MovieService {
                 .block()
                 .bodyToMono(String.class)
                 .block();
-        System.out.println(jsonResponse);
         MovieInfoDto movieInfoDto = new MovieInfoDto();
         JSONObject obj = new JSONObject(jsonResponse);
+        JSONArray castJsonArray = obj.getJSONObject("credits").getJSONArray("cast");
+        ArrayList<CastMemberDto> castMembers = new ArrayList<CastMemberDto>();
         movieInfoDto.setId(obj.getInt("id"));
         movieInfoDto.setTitle(obj.getString("title"));
         movieInfoDto.setOverview(obj.getString("overview"));
         movieInfoDto.setPosterPath(obj.getString("poster_path"));
         movieInfoDto.setBackdropPath(obj.getString("backdrop_path"));
+        for (int i = 0; i < castJsonArray.length(); i++) {
+            JSONObject castMemberJson = castJsonArray.getJSONObject(i);
+            CastMemberDto castMemberDto = new CastMemberDto();
+            castMemberDto.setId(castMemberJson.getInt("id"));
+            castMemberDto.setName(castMemberJson.getString("name"));
+            castMemberDto.setCharacter(castMemberJson.getString("character"));
+            if (!castMemberJson.isNull("profile_path")) {
+                castMemberDto.setProfilePath(castMemberJson.getString("profile_path"));
+            }
+            castMembers.add(castMemberDto);
+        }
+        movieInfoDto.setCast(castMembers);
         return movieInfoDto;
     }
 
