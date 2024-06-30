@@ -10,4 +10,5 @@ import java.util.ArrayList;
 @NoArgsConstructor
 public class MovieListDto {
     private ArrayList<Movie> movieList;
+    private ArrayList<MovieSearchDto> movieSearchList;
 }

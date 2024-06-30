@@ -1,6 +1,7 @@
 package com.MovieMonster.demo.Controllers;
 
 import com.MovieMonster.demo.Dto.MovieInfoDto;
+import com.MovieMonster.demo.Dto.MovieListDto;
 import com.MovieMonster.demo.Services.MovieService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,11 @@ public class MovieController {
     @GetMapping("/{id}")
     public MovieInfoDto getMovie(@PathVariable int id) {
         return movieService.getMovieInfo(id);
+    }
+
+    @GetMapping("/search/{title}")
+    public MovieListDto searchMovie(@PathVariable String title) {
+        return movieService.searchMovie(title);
     }
 
 }

@@ -3,6 +3,7 @@ package com.MovieMonster.demo.Services;
 import com.MovieMonster.demo.Dto.CastMemberDto;
 import com.MovieMonster.demo.Dto.MovieInfoDto;
 import com.MovieMonster.demo.Dto.MovieListDto;
+import com.MovieMonster.demo.Dto.MovieSearchDto;
 import com.MovieMonster.demo.Models.DashDisplay;
 import com.MovieMonster.demo.Models.Movie;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,37 @@ public class MovieService {
     private WebClient apiClient;
     @Value("${tmdb.key}")
     private String tmdbKey;
+
+    public MovieListDto searchMovie(String title) {
+        String fullUri = "https://api.themoviedb.org/3/search/movie?query="
+                + title
+                + "&include_adult=false&language=en-US&page=1&api_key="
+                + tmdbKey;
+        String jsonResponse = apiClient
+                .get()
+                .uri(fullUri)
+                .exchange()
+                .block()
+                .bodyToMono(String.class)
+                .block();
+        MovieListDto movieListDto = new MovieListDto();
+        ArrayList<MovieSearchDto> movieSearchList = new ArrayList<MovieSearchDto>();
+        JSONObject obj = new JSONObject(jsonResponse);
+        JSONArray jsonArray = obj.getJSONArray("results");
+        int maxResults = 5;
+        for (int i = 0; i < jsonArray.length(); i++) {
+            if (i >= maxResults) {
+                break;
+            }
+            JSONObject movieJsonObj = jsonArray.getJSONObject(i);
+            MovieSearchDto movieSearchDto = new MovieSearchDto();
+            movieSearchDto.setId(movieJsonObj.getInt("id"));
+            movieSearchDto.setTitle(movieJsonObj.getString("title"));
+            movieSearchList.add(movieSearchDto);
+        }
+        movieListDto.setMovieSearchList(movieSearchList);
+        return movieListDto;
+    }
 
     public MovieInfoDto getMovieInfo(int id) {
         String fullUri = "/3/movie/" + id + "?language=en-US&api_key=" + tmdbKey + "&append_to_response=credits";
