@@ -25,4 +25,9 @@ public class UserEntity {
     @JoinTable(name="user_roles", joinColumns = @JoinColumn(name="user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name="role_id", referencedColumnName = "id"))
     private List<Role> roles = new ArrayList<>();
+
+    //TODO add one to one relationship with MovieList
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "list_id", referencedColumnName = "id")
+    private MovieList movieList;
 }

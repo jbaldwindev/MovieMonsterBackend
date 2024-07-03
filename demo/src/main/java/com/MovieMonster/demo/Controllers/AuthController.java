@@ -3,8 +3,12 @@ package com.MovieMonster.demo.Controllers;
 import com.MovieMonster.demo.Dto.AuthResponseDto;
 import com.MovieMonster.demo.Dto.LoginDto;
 import com.MovieMonster.demo.Dto.RegisterDto;
+import com.MovieMonster.demo.Models.MovieList;
+import com.MovieMonster.demo.Models.MovieRating;
 import com.MovieMonster.demo.Models.UserEntity;
 import com.MovieMonster.demo.Models.Role;
+import com.MovieMonster.demo.Repositories.MovieListRepository;
+import com.MovieMonster.demo.Repositories.MovieRatingRepository;
 import com.MovieMonster.demo.Repositories.RoleRepository;
 import com.MovieMonster.demo.Repositories.UserRepository;
 import com.MovieMonster.demo.Security.JWTGenerator;
@@ -18,6 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.Collections;
 
 @RestController
@@ -26,6 +31,10 @@ import java.util.Collections;
 public class AuthController {
 
     private UserRepository userRepository;
+    @Autowired
+    private MovieListRepository movieListRepository;
+    @Autowired
+    private MovieRatingRepository movieRatingRepository;
     private AuthenticationManager authenticationManager;
     private RoleRepository roleRepository;
     private PasswordEncoder passwordEncoder;
@@ -50,6 +59,19 @@ public class AuthController {
         UserEntity user = new UserEntity();
         user.setUsername(registerDto.getUsername());
         user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
+        //TODO remove dummy data made to test movie list persistence (62-74)
+        MovieList movieList = new MovieList();
+        ArrayList<MovieRating> movieRatings = new ArrayList<MovieRating>();
+        MovieRating movieRating1 = new MovieRating();
+        movieRating1.setMovieId(07221);
+        movieRating1.setRating(3);
+
+        movieRatings.add(movieRating1);
+        movieList.setMovieRatingList(movieRatings);
+        user.setMovieList(movieList);
+        movieRating1.setMovieList(movieList);
+        movieListRepository.save(movieList);
+        movieRatingRepository.save(movieRating1);
 
         Role roles = roleRepository.findByName("USER").get();
         user.setRoles(Collections.singletonList(roles));
