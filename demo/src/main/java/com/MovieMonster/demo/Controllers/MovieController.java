@@ -3,11 +3,15 @@ package com.MovieMonster.demo.Controllers;
 import com.MovieMonster.demo.Dto.MovieInfoDto;
 import com.MovieMonster.demo.Dto.MovieListDto;
 import com.MovieMonster.demo.Dto.MovieRatingDto;
+import com.MovieMonster.demo.Models.MovieRating;
 import com.MovieMonster.demo.Services.MovieService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
@@ -30,6 +34,11 @@ public class MovieController {
         System.out.println("Request has been received");
         movieService.rateMovie(movieRatingDto.getUsername(), movieRatingDto.getMovieId(), movieRatingDto.getMovieRating());
         return new ResponseEntity<>("Movie Rating updated!", HttpStatus.OK);
+    }
+
+    @GetMapping("/list/{username}")
+    public ArrayList<MovieRatingDto> getUserMovieList(@PathVariable String username) {
+        return movieService.getUserMovieList(username);
     }
 
 }

@@ -1,9 +1,6 @@
 package com.MovieMonster.demo.Services;
 
-import com.MovieMonster.demo.Dto.CastMemberDto;
-import com.MovieMonster.demo.Dto.MovieInfoDto;
-import com.MovieMonster.demo.Dto.MovieListDto;
-import com.MovieMonster.demo.Dto.MovieSearchDto;
+import com.MovieMonster.demo.Dto.*;
 import com.MovieMonster.demo.Models.*;
 import com.MovieMonster.demo.Repositories.MovieListRepository;
 import com.MovieMonster.demo.Repositories.MovieRatingRepository;
@@ -64,16 +61,6 @@ public class MovieService {
         return movieListDto;
     }
 
-    //TODO user creation
-    //params: userId
-
-    //user is created
-    //calls this function after
-    //retrieve user
-    //create novie list
-    //save movie list
-    //add movie list to user
-    //save user
     public void createMovieList(int userId) {
         Optional<UserEntity> retrievedUser = userRepository.findById(userId);
         if (retrievedUser.isPresent()) {
@@ -116,9 +103,32 @@ public class MovieService {
     }
 
     //TODO user opens list page
+    //parameter (int userId)
+    //find user by id
+    //get user's list
+    //return list of ratings that is within user's list
     //get all rating objects where list matches user's list id
     //store in list
     //return list
+
+public ArrayList<MovieRatingDto> getUserMovieList(String username) {
+        Optional<UserEntity> retrievedUser = userRepository.findByUsername(username);
+        if (retrievedUser.isPresent()) {
+            UserEntity user = retrievedUser.get();
+            List<MovieRating> movieRatingList = user.getMovieList().getMovieRatingList();
+            ArrayList<MovieRatingDto> movieRatingArrList = new ArrayList<MovieRatingDto>();
+            for (MovieRating rating : movieRatingList) {
+                MovieRatingDto movieRatingDto = new MovieRatingDto();
+                movieRatingDto.setMovieId(rating.getMovieId());
+                movieRatingDto.setMovieRating(rating.getRating());
+                movieRatingArrList.add(movieRatingDto);
+            }
+            return movieRatingArrList;
+        } else {
+            return null;
+        }
+}
+
 
     public MovieInfoDto getMovieInfo(int id) {
         String fullUri = "/3/movie/" + id + "?language=en-US&api_key=" + tmdbKey + "&append_to_response=credits";
