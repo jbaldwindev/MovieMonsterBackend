@@ -12,6 +12,7 @@ import com.MovieMonster.demo.Repositories.MovieRatingRepository;
 import com.MovieMonster.demo.Repositories.RoleRepository;
 import com.MovieMonster.demo.Repositories.UserRepository;
 import com.MovieMonster.demo.Security.JWTGenerator;
+import com.MovieMonster.demo.Services.MovieService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +36,8 @@ public class AuthController {
     private MovieListRepository movieListRepository;
     @Autowired
     private MovieRatingRepository movieRatingRepository;
+    @Autowired
+    private MovieService movieService;
     private AuthenticationManager authenticationManager;
     private RoleRepository roleRepository;
     private PasswordEncoder passwordEncoder;
@@ -59,24 +62,11 @@ public class AuthController {
         UserEntity user = new UserEntity();
         user.setUsername(registerDto.getUsername());
         user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
-        //TODO remove dummy data made to test movie list persistence (62-74)
-        MovieList movieList = new MovieList();
-        ArrayList<MovieRating> movieRatings = new ArrayList<MovieRating>();
-        MovieRating movieRating1 = new MovieRating();
-        movieRating1.setMovieId(07221);
-        movieRating1.setRating(3);
-
-        movieRatings.add(movieRating1);
-        movieList.setMovieRatingList(movieRatings);
-        user.setMovieList(movieList);
-        movieRating1.setMovieList(movieList);
-        movieListRepository.save(movieList);
-        movieRatingRepository.save(movieRating1);
 
         Role roles = roleRepository.findByName("USER").get();
         user.setRoles(Collections.singletonList(roles));
-
         userRepository.save(user);
+        movieService.createMovieList(user.getId());
         return new ResponseEntity<>("User has been registered", HttpStatus.OK);
     }
 

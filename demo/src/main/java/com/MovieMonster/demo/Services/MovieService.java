@@ -4,8 +4,10 @@ import com.MovieMonster.demo.Dto.CastMemberDto;
 import com.MovieMonster.demo.Dto.MovieInfoDto;
 import com.MovieMonster.demo.Dto.MovieListDto;
 import com.MovieMonster.demo.Dto.MovieSearchDto;
-import com.MovieMonster.demo.Models.DashDisplay;
-import com.MovieMonster.demo.Models.Movie;
+import com.MovieMonster.demo.Models.*;
+import com.MovieMonster.demo.Repositories.MovieListRepository;
+import com.MovieMonster.demo.Repositories.MovieRatingRepository;
+import com.MovieMonster.demo.Repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -14,12 +16,20 @@ import org.json.*;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class MovieService {
     private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(3);
     @Autowired
     private WebClient apiClient;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private MovieListRepository movieListRepository;
+    @Autowired
+    private MovieRatingRepository movieRatingRepository;
     @Value("${tmdb.key}")
     private String tmdbKey;
 
@@ -53,6 +63,62 @@ public class MovieService {
         movieListDto.setMovieSearchList(movieSearchList);
         return movieListDto;
     }
+
+    //TODO user creation
+    //params: userId
+
+    //user is created
+    //calls this function after
+    //retrieve user
+    //create novie list
+    //save movie list
+    //add movie list to user
+    //save user
+    public void createMovieList(int userId) {
+        Optional<UserEntity> retrievedUser = userRepository.findById(userId);
+        if (retrievedUser.isPresent()) {
+            UserEntity user = retrievedUser.get();
+            System.out.println("Retrieved user's ID: " + user.getId());
+            MovieList movieList = new MovieList();
+            ArrayList<MovieRating> movieRatings = new ArrayList<MovieRating>();
+            movieList.setMovieRatingList(movieRatings);
+            user.setMovieList(movieList);
+            movieListRepository.save(movieList);
+        }
+    }
+
+    public void rateMovie(String username, int movieId, int rating) {
+        Optional<UserEntity> retrievedUser = userRepository.findByUsername(username);
+        if (retrievedUser.isPresent()) {
+            UserEntity user = retrievedUser.get();
+            MovieList movieList = user.getMovieList();
+            List<MovieRating> movieRatings = movieList.getMovieRatingList();
+            boolean movieFound = false;
+            for (int i = 0; i < movieRatings.size(); i++) {
+                MovieRating movieRating = movieRatings.get(i);
+                if (movieRating.getMovieId() == movieId) {
+                    System.out.println("the movie was rated once before");
+                    movieFound = true;
+                    movieRating.setRating(rating);
+                    movieRatingRepository.save(movieRating);
+                }
+            }
+
+            if (!movieFound) {
+                MovieRating movieRating = new MovieRating();
+                movieRating.setMovieId(movieId);
+                movieRating.setMovieList(movieList);
+                movieRating.setRating(rating);
+                movieRatingRepository.save(movieRating);
+            }
+
+        }
+    }
+
+    //TODO user opens list page
+    //get all rating objects where list matches user's list id
+    //store in list
+    //return list
 
     public MovieInfoDto getMovieInfo(int id) {
         String fullUri = "/3/movie/" + id + "?language=en-US&api_key=" + tmdbKey + "&append_to_response=credits";
