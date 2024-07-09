@@ -13,6 +13,7 @@ import org.json.*;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -103,16 +104,26 @@ public class MovieService {
         }
     }
 
-    //TODO user opens list page
-    //parameter (int userId)
-    //find user by id
-    //get user's list
-    //return list of ratings that is within user's list
-    //get all rating objects where list matches user's list id
-    //store in list
-    //return list
+    public MovieRatingDto checkRating(String username, Integer movieId) {
+        Optional<UserEntity> retrievedUser = userRepository.findByUsername(username);
+        UserEntity user;
+        if (retrievedUser.isPresent()) {
+            user = retrievedUser.get();
+            Collection<MovieRating> ratingList = user.getMovieList().getMovieRatingList();
+            MovieRating retrievedRating = ratingList
+                    .stream()
+                    .filter(rating -> movieId.equals(rating.getMovieId()))
+                    .findFirst()
+                    .orElse(null);
 
-public ArrayList<MovieRatingDto> getUserMovieList(String username) {
+            MovieRatingDto movieRatingDto = new MovieRatingDto();
+            movieRatingDto.setMovieRating(retrievedRating.getRating());
+            return movieRatingDto;
+        }
+        return null;
+    }
+
+    public ArrayList<MovieRatingDto> getUserMovieList(String username) {
         Optional<UserEntity> retrievedUser = userRepository.findByUsername(username);
         if (retrievedUser.isPresent()) {
             UserEntity user = retrievedUser.get();
@@ -129,7 +140,7 @@ public ArrayList<MovieRatingDto> getUserMovieList(String username) {
         } else {
             return null;
         }
-}
+    }
 
 
     public MovieInfoDto getMovieInfo(int id) {

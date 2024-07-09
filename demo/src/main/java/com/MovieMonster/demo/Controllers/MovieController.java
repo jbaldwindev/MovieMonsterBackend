@@ -31,7 +31,6 @@ public class MovieController {
 
     @PostMapping("/rate")
     public ResponseEntity<String> rateMovie(@RequestBody MovieRatingDto movieRatingDto) {
-        System.out.println("Request has been received");
         movieService.rateMovie(
                 movieRatingDto.getUsername(),
                 movieRatingDto.getMovieTitle(),
@@ -43,6 +42,17 @@ public class MovieController {
     @GetMapping("/list/{username}")
     public ArrayList<MovieRatingDto> getUserMovieList(@PathVariable String username) {
         return movieService.getUserMovieList(username);
+    }
+
+    @GetMapping("/check-rating/{username}/{movieId}")
+    public ResponseEntity<MovieRatingDto> checkRating(@PathVariable String username, @PathVariable int movieId) {
+        System.out.println("made it in here");
+        MovieRatingDto movieRatingDto = movieService.checkRating(username, movieId);
+        if (movieRatingDto != null) {
+            return new ResponseEntity<>(movieRatingDto, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        }
     }
 
 }
