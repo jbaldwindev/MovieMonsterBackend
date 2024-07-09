@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class MovieRatingDto {
     private String username;
+    private String movieTitle;
     private int movieId;
     private int movieRating;
 }

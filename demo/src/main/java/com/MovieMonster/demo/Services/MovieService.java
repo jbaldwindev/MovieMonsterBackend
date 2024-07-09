@@ -74,7 +74,7 @@ public class MovieService {
         }
     }
 
-    public void rateMovie(String username, int movieId, int rating) {
+    public void rateMovie(String username, String title, int movieId, int rating) {
         Optional<UserEntity> retrievedUser = userRepository.findByUsername(username);
         if (retrievedUser.isPresent()) {
             UserEntity user = retrievedUser.get();
@@ -95,6 +95,7 @@ public class MovieService {
                 MovieRating movieRating = new MovieRating();
                 movieRating.setMovieId(movieId);
                 movieRating.setMovieList(movieList);
+                movieRating.setTitle(title);
                 movieRating.setRating(rating);
                 movieRatingRepository.save(movieRating);
             }
@@ -120,6 +121,7 @@ public ArrayList<MovieRatingDto> getUserMovieList(String username) {
             for (MovieRating rating : movieRatingList) {
                 MovieRatingDto movieRatingDto = new MovieRatingDto();
                 movieRatingDto.setMovieId(rating.getMovieId());
+                movieRatingDto.setMovieTitle(rating.getTitle());
                 movieRatingDto.setMovieRating(rating.getRating());
                 movieRatingArrList.add(movieRatingDto);
             }

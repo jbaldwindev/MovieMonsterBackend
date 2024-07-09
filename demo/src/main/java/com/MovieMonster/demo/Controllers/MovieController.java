@@ -32,7 +32,11 @@ public class MovieController {
     @PostMapping("/rate")
     public ResponseEntity<String> rateMovie(@RequestBody MovieRatingDto movieRatingDto) {
         System.out.println("Request has been received");
-        movieService.rateMovie(movieRatingDto.getUsername(), movieRatingDto.getMovieId(), movieRatingDto.getMovieRating());
+        movieService.rateMovie(
+                movieRatingDto.getUsername(),
+                movieRatingDto.getMovieTitle(),
+                movieRatingDto.getMovieId(),
+                movieRatingDto.getMovieRating());
         return new ResponseEntity<>("Movie Rating updated!", HttpStatus.OK);
     }
 

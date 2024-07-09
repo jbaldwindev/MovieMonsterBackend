@@ -17,6 +17,7 @@ public class MovieRating {
     private int id;
     private int movieId;
     private int rating;
+    private String title;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="list_id", referencedColumnName = "id")
