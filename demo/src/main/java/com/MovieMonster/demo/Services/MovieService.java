@@ -12,10 +12,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.json.*;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class MovieService {
@@ -123,11 +120,19 @@ public class MovieService {
         return null;
     }
 
-    public ArrayList<MovieRatingDto> getUserMovieList(String username) {
+    public ArrayList<MovieRatingDto> getUserMovieList(String username, SortOrder sortOrder) {
         Optional<UserEntity> retrievedUser = userRepository.findByUsername(username);
         if (retrievedUser.isPresent()) {
             UserEntity user = retrievedUser.get();
             List<MovieRating> movieRatingList = user.getMovieList().getMovieRatingList();
+            Collections.sort(movieRatingList, new Comparator<MovieRating>() {
+                public int compare(MovieRating m1, MovieRating m2) {
+                    return m2.getRating().compareTo(m1.getRating());
+                }
+            });
+            if (sortOrder == SortOrder.ASC) {
+                Collections.reverse(movieRatingList);
+            }
             ArrayList<MovieRatingDto> movieRatingArrList = new ArrayList<MovieRatingDto>();
             for (MovieRating rating : movieRatingList) {
                 MovieRatingDto movieRatingDto = new MovieRatingDto();

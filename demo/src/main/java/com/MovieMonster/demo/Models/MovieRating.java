@@ -16,7 +16,7 @@ public class MovieRating {
     @GeneratedValue()
     private int id;
     private int movieId;
-    private int rating;
+    private Integer rating;
     private String title;
 
     @ManyToOne(fetch = FetchType.LAZY)

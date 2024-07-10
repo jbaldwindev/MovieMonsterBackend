@@ -4,6 +4,7 @@ import com.MovieMonster.demo.Dto.MovieInfoDto;
 import com.MovieMonster.demo.Dto.MovieListDto;
 import com.MovieMonster.demo.Dto.MovieRatingDto;
 import com.MovieMonster.demo.Models.MovieRating;
+import com.MovieMonster.demo.Models.SortOrder;
 import com.MovieMonster.demo.Services.MovieService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -39,15 +40,25 @@ public class MovieController {
         return new ResponseEntity<>("Movie Rating updated!", HttpStatus.OK);
     }
 
-    @GetMapping("/list/{username}")
-    public ArrayList<MovieRatingDto> getUserMovieList(@PathVariable String username) {
-        return movieService.getUserMovieList(username);
+    @GetMapping("/list/{username}&sort={order}")
+    public ArrayList<MovieRatingDto> getUserMovieList(@PathVariable String username, @PathVariable String order) {
+        SortOrder sortOrder;
+        if (order.equals("asc")) {
+            sortOrder = SortOrder.ASC;
+        } else {
+            sortOrder = SortOrder.DESC;
+        }
+        return movieService.getUserMovieList(username, sortOrder);
     }
 
     @GetMapping("/check-rating/{username}/{movieId}")
     public ResponseEntity<MovieRatingDto> checkRating(@PathVariable String username, @PathVariable int movieId) {
-        System.out.println("made it in here");
-        MovieRatingDto movieRatingDto = movieService.checkRating(username, movieId);
+        MovieRatingDto movieRatingDto;
+        try {
+            movieRatingDto = movieService.checkRating(username, movieId);
+        } catch (Exception e) {
+            movieRatingDto = null;
+        }
         if (movieRatingDto != null) {
             return new ResponseEntity<>(movieRatingDto, HttpStatus.OK);
         } else {
