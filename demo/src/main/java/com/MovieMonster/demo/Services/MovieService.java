@@ -2,9 +2,7 @@ package com.MovieMonster.demo.Services;
 
 import com.MovieMonster.demo.Dto.*;
 import com.MovieMonster.demo.Models.*;
-import com.MovieMonster.demo.Repositories.MovieListRepository;
-import com.MovieMonster.demo.Repositories.MovieRatingRepository;
-import com.MovieMonster.demo.Repositories.UserRepository;
+import com.MovieMonster.demo.Repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -25,6 +23,11 @@ public class MovieService {
     private MovieListRepository movieListRepository;
     @Autowired
     private MovieRatingRepository movieRatingRepository;
+    @Autowired
+    private MovieRepository movieRepository;
+    @Autowired
+    private MovieCommentRepository movieCommentRepository;
+
     @Value("${tmdb.key}")
     private String tmdbKey;
 
@@ -147,6 +150,73 @@ public class MovieService {
         }
     }
 
+    //TODO Update this to take a parameter for page, have it return list of 5 comments at a time.
+    public CommentListDto getCommentList(int id) {
+        Optional<Movie> fetchedMovie = movieRepository.findById(id);
+        if (fetchedMovie.isPresent()) {
+            Movie movie = fetchedMovie.get();
+            CommentListDto commentListDto = new CommentListDto();
+            commentListDto.setMovieId(id);
+            ArrayList<MovieComment> movieCommentArrList = new ArrayList<>(movie.getMovieCommentList());
+            commentListDto.setCommentList(movieCommentArrList);
+            return commentListDto;
+        }
+        return new CommentListDto();
+    }
+
+    //search for the movie in the movie repository
+    //if it exists, get the comment list and add the comment into it
+    //if it doesn't exist, create the movie, add the comment to the comment list,
+    //and save it to the movie repository
+    //do I also have to save it to a comment repository?
+    //let me check what I did for creating a movie rating.
+    //looks like I need to save both but I'm still unsure
+    public void postComment(MovieCommentDto movieCommentDto) {
+        int movieId = movieCommentDto.getMovieId();
+        Optional<Movie> fetchedMovie = movieRepository.findByMovieId(movieId);
+        if (fetchedMovie.isPresent()) {
+            Movie movie = fetchedMovie.get();
+            //create the comment
+            MovieComment movieComment = new MovieComment();
+            movieComment.setMovie(movie);
+            movieComment.setMovieComment(movieCommentDto.getComment());
+            movieComment.setUsername(movieCommentDto.getUsername());
+            //save to the comment respository
+            movieCommentRepository.save(movieComment);
+            //add the comment to the movie's comment list
+            List<MovieComment> movieCommentList = movie.getMovieCommentList();
+            movieCommentList.add(movieComment);
+            movie.setMovieCommentList(movieCommentList);
+            //save the movie in the movie repository
+            movieRepository.save(movie);
+        } else {
+            //create the movie
+            //TODO this will involve fetching data about the movie from the movie api
+            //can probably make a call to getMovieInfo, then use the
+            //movieInfoDto it returns to fill in most of this data
+            MovieInfoDto movieInfoDto = getMovieInfo(movieCommentDto.getMovieId());
+            Movie movie = new Movie();
+            movie.setMovieId(movieId);
+            movie.setOriginalTitle(movieInfoDto.getTitle());
+            movie.setOverview(movieInfoDto.getOverview());
+            movie.setMovieCommentList(new ArrayList<MovieComment>());
+            movie.setPosterPath(movieInfoDto.getPosterPath());
+            //create the comment
+            MovieComment movieComment = new MovieComment();
+            movieComment.setMovieComment(movieCommentDto.getComment());
+            movieComment.setUsername(movieCommentDto.getUsername());
+            movieComment.setMovie(movie);
+            //add the comment to the movies comment list
+            List<MovieComment> movieCommentList = new ArrayList<MovieComment>();
+            movieCommentList.add(movieComment);
+            movie.setMovieCommentList(movieCommentList);
+            //save the movie to the movie repository
+            movieRepository.save(movie);
+            //save the comment to the comment repository
+            movieCommentRepository.save(movieComment);
+        }
+
+    }
 
     public MovieInfoDto getMovieInfo(int id) {
         String fullUri = "/3/movie/" + id + "?language=en-US&api_key=" + tmdbKey + "&append_to_response=credits";

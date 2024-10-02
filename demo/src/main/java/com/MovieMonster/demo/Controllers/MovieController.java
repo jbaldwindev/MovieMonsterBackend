@@ -1,8 +1,6 @@
 package com.MovieMonster.demo.Controllers;
 
-import com.MovieMonster.demo.Dto.MovieInfoDto;
-import com.MovieMonster.demo.Dto.MovieListDto;
-import com.MovieMonster.demo.Dto.MovieRatingDto;
+import com.MovieMonster.demo.Dto.*;
 import com.MovieMonster.demo.Models.MovieRating;
 import com.MovieMonster.demo.Models.SortOrder;
 import com.MovieMonster.demo.Services.MovieService;
@@ -23,6 +21,17 @@ public class MovieController {
     @GetMapping("/{id}")
     public MovieInfoDto getMovie(@PathVariable int id) {
         return movieService.getMovieInfo(id);
+    }
+
+    @PostMapping("/post-comment")
+    public ResponseEntity<String> postMovieComment(@RequestBody MovieCommentDto movieCommentDto) {
+        movieService.postComment(movieCommentDto);
+        return new ResponseEntity<>("Comment posted!", HttpStatus.OK);
+    }
+
+    @GetMapping("/get-comments/{id}")
+    public CommentListDto getComments(@PathVariable int id) {
+        return movieService.getCommentList(id);
     }
 
     @GetMapping("/search/{title}")
