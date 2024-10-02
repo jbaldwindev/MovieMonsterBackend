@@ -152,13 +152,16 @@ public class MovieService {
 
     //TODO Update this to take a parameter for page, have it return list of 5 comments at a time.
     public CommentListDto getCommentList(int id) {
-        Optional<Movie> fetchedMovie = movieRepository.findById(id);
+        Optional<Movie> fetchedMovie = movieRepository.findByMovieId(id);
         if (fetchedMovie.isPresent()) {
             Movie movie = fetchedMovie.get();
             CommentListDto commentListDto = new CommentListDto();
             commentListDto.setMovieId(id);
             ArrayList<MovieComment> movieCommentArrList = new ArrayList<>(movie.getMovieCommentList());
             commentListDto.setCommentList(movieCommentArrList);
+            if (commentListDto.getCommentList().size() > 1) {
+                System.out.println(commentListDto.getCommentList().get(1).getMovieComment());
+            }
             return commentListDto;
         }
         return new CommentListDto();
