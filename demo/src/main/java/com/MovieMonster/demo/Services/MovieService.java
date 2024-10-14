@@ -157,23 +157,23 @@ public class MovieService {
             Movie movie = fetchedMovie.get();
             CommentListDto commentListDto = new CommentListDto();
             commentListDto.setMovieId(id);
-            ArrayList<MovieComment> movieCommentArrList = new ArrayList<>(movie.getMovieCommentList());
+            ArrayList<MovieCommentDto> movieCommentArrList = new ArrayList<MovieCommentDto>();
+            for (MovieComment comment : movie.getMovieCommentList()) {
+                MovieCommentDto newCommentDto = new MovieCommentDto();
+                newCommentDto.setMovieId(comment.getMovie().getMovieId());
+                newCommentDto.setUsername(comment.getUsername());
+                newCommentDto.setComment(comment.getMovieComment());
+                movieCommentArrList.add(newCommentDto);
+            }
             commentListDto.setCommentList(movieCommentArrList);
             if (commentListDto.getCommentList().size() > 1) {
-                System.out.println(commentListDto.getCommentList().get(1).getMovieComment());
+                System.out.println(commentListDto.getCommentList().get(1).getComment());
             }
             return commentListDto;
         }
         return new CommentListDto();
     }
 
-    //search for the movie in the movie repository
-    //if it exists, get the comment list and add the comment into it
-    //if it doesn't exist, create the movie, add the comment to the comment list,
-    //and save it to the movie repository
-    //do I also have to save it to a comment repository?
-    //let me check what I did for creating a movie rating.
-    //looks like I need to save both but I'm still unsure
     public void postComment(MovieCommentDto movieCommentDto) {
         int movieId = movieCommentDto.getMovieId();
         Optional<Movie> fetchedMovie = movieRepository.findByMovieId(movieId);

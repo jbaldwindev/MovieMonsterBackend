@@ -21,6 +21,7 @@ public class Movie {
     private int movieId;
     private String originalTitle;
     private String posterPath;
+    @Column(length = 3000)
     private String overview;
     @OneToMany(mappedBy = "movie")
     private List<MovieComment> movieCommentList = new ArrayList<>();

@@ -15,6 +15,7 @@ public class MovieComment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String username;
+    @Column(length = 3000)
     private String movieComment;
 
     @ManyToOne(fetch = FetchType.LAZY)

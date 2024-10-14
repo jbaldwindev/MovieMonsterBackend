@@ -2,8 +2,6 @@ package com.MovieMonster.demo.Dto;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import com.MovieMonster.demo.Models.MovieComment;
-
 
 import java.util.ArrayList;
 
@@ -11,5 +9,5 @@ import java.util.ArrayList;
 @NoArgsConstructor
 public class CommentListDto {
     private int movieId;
-    private ArrayList<MovieComment> commentList;
+    private ArrayList<MovieCommentDto> commentList;
 }
