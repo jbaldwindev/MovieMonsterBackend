@@ -29,13 +29,17 @@ public class MovieController {
         return new ResponseEntity<>("Comment posted!", HttpStatus.OK);
     }
 
-    //TODO this is currently returning a comment list dto
-    //the comment list dto has a list of movie comments
-    //I need to change that to be a list of MovieCommentDtos
-    //and in movieService.getCommentList, I need to populate those dtos
-    @GetMapping("/get-comments/{id}")
-    public CommentListDto getComments(@PathVariable int id) {
-        return movieService.getCommentList(id);
+    @PostMapping("/like-comment")
+    public ResponseEntity<String> likeComment(@RequestBody CommentLikeDto commentLikeDto) {
+        System.out.println("initial request received");
+        movieService.likeComment(commentLikeDto);
+        return new ResponseEntity<>("Comment liked!", HttpStatus.OK);
+    }
+
+    @GetMapping("/get-comments/{username}&filmId={movieId}")
+    public CommentListDto getComments(@PathVariable String username, @PathVariable int movieId) {
+        CommentRequestDto commentRequestDto = new CommentRequestDto(movieId, username);
+        return movieService.getCommentList(commentRequestDto);
     }
 
     @GetMapping("/search/{title}")

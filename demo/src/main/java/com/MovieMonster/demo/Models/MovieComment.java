@@ -5,6 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "MovieComments")
 @Data
@@ -21,4 +24,7 @@ public class MovieComment {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="movie_id", referencedColumnName = "id")
     private Movie movie;
+
+    @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<CommentLike> commentLikeList = new ArrayList<>();
 }

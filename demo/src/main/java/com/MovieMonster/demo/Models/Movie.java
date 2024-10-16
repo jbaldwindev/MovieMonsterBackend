@@ -25,4 +25,5 @@ public class Movie {
     private String overview;
     @OneToMany(mappedBy = "movie")
     private List<MovieComment> movieCommentList = new ArrayList<>();
+
 }

@@ -27,6 +27,8 @@ public class MovieService {
     private MovieRepository movieRepository;
     @Autowired
     private MovieCommentRepository movieCommentRepository;
+    @Autowired
+    private CommentLikeRepository commentLikeRepository;
 
     @Value("${tmdb.key}")
     private String tmdbKey;
@@ -151,27 +153,59 @@ public class MovieService {
     }
 
     //TODO Update this to take a parameter for page, have it return list of 5 comments at a time.
-    public CommentListDto getCommentList(int id) {
-        Optional<Movie> fetchedMovie = movieRepository.findByMovieId(id);
+    //TODO add a username param to the request
+    //TODO update the request to take in a json object with the movies id as well as the user's username
+    //TODO update the frontend to use the new version of the request instead
+    public CommentListDto getCommentList(CommentRequestDto commentRequestDto) {
+        Optional<Movie> fetchedMovie = movieRepository.findByMovieId(commentRequestDto.getMovieId());
         if (fetchedMovie.isPresent()) {
             Movie movie = fetchedMovie.get();
             CommentListDto commentListDto = new CommentListDto();
-            commentListDto.setMovieId(id);
+            commentListDto.setMovieId(commentRequestDto.getMovieId());
             ArrayList<MovieCommentDto> movieCommentArrList = new ArrayList<MovieCommentDto>();
             for (MovieComment comment : movie.getMovieCommentList()) {
                 MovieCommentDto newCommentDto = new MovieCommentDto();
                 newCommentDto.setMovieId(comment.getMovie().getMovieId());
                 newCommentDto.setUsername(comment.getUsername());
+                newCommentDto.setCommentId(comment.getId());
                 newCommentDto.setComment(comment.getMovieComment());
+                newCommentDto.setLikeCount(comment.getCommentLikeList().size());
+                Boolean usernameFound = false;
+                for (CommentLike commentLike : comment.getCommentLikeList()) {
+                    if (commentLike.getUsername() == commentRequestDto.getUsername()) {
+                        usernameFound = true;
+                    }
+                }
+                newCommentDto.setCurrentUserLiked(usernameFound);
                 movieCommentArrList.add(newCommentDto);
             }
             commentListDto.setCommentList(movieCommentArrList);
             if (commentListDto.getCommentList().size() > 1) {
-                System.out.println(commentListDto.getCommentList().get(1).getComment());
             }
             return commentListDto;
         }
         return new CommentListDto();
+    }
+
+    public void likeComment(CommentLikeDto commentLikeDto) {
+        //retrieve the movie comment by the comment id passed in
+        int commentId = commentLikeDto.getCommentId();
+        Optional<MovieComment> fetchedMovieComment = movieCommentRepository.findById(commentId);
+        if (fetchedMovieComment.isPresent()) {
+            MovieComment movieComment = fetchedMovieComment.get();
+            CommentLike commentLike = new CommentLike();
+            //create a CommentLike object, set the username and comment
+            commentLike.setUsername(commentLikeDto.getUsername());
+            commentLike.setComment(movieComment);
+            //save the CommentLike object in the repository
+            commentLikeRepository.save(commentLike);
+            //add the CommentLike to the list of CommentLikes in the comment object
+            List<CommentLike> commentLikeList = movieComment.getCommentLikeList();
+            commentLikeList.add(commentLike);
+            movieComment.setCommentLikeList(commentLikeList);
+            //save the comment in the comment repository
+            movieCommentRepository.save(movieComment);
+        }
     }
 
     public void postComment(MovieCommentDto movieCommentDto) {
@@ -188,15 +222,14 @@ public class MovieService {
             movieCommentRepository.save(movieComment);
             //add the comment to the movie's comment list
             List<MovieComment> movieCommentList = movie.getMovieCommentList();
+            System.out.println("Here is the current movie comment list:");
+            System.out.println(movieCommentList);
             movieCommentList.add(movieComment);
             movie.setMovieCommentList(movieCommentList);
             //save the movie in the movie repository
             movieRepository.save(movie);
         } else {
             //create the movie
-            //TODO this will involve fetching data about the movie from the movie api
-            //can probably make a call to getMovieInfo, then use the
-            //movieInfoDto it returns to fill in most of this data
             MovieInfoDto movieInfoDto = getMovieInfo(movieCommentDto.getMovieId());
             Movie movie = new Movie();
             movie.setMovieId(movieId);

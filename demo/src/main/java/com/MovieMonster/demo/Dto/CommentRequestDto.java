@@ -1,15 +1,13 @@
 package com.MovieMonster.demo.Dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-public class MovieCommentDto {
+@AllArgsConstructor
+public class CommentRequestDto {
     private int movieId;
-    private int commentId;
-    private int likeCount;
-    private Boolean currentUserLiked;
     private String username;
-    private String comment;
 }
