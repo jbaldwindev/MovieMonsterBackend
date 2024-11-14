@@ -193,6 +193,15 @@ public class MovieService {
         Optional<MovieComment> fetchedMovieComment = movieCommentRepository.findById(commentId);
         if (fetchedMovieComment.isPresent()) {
             MovieComment movieComment = fetchedMovieComment.get();
+            List<CommentLike> commentLikeList = movieComment.getCommentLikeList();
+            //make sure that the user can only like a comment once and not more than once
+            for (CommentLike cLike : commentLikeList) {
+                System.out.println("Comment like username: " + cLike.getUsername());
+                System.out.println("dto username: " + cLike.getUsername());
+                if (cLike.getUsername() == commentLikeDto.getUsername()) {
+                    return;
+                }
+            }
             CommentLike commentLike = new CommentLike();
             //create a CommentLike object, set the username and comment
             commentLike.setUsername(commentLikeDto.getUsername());
@@ -200,7 +209,7 @@ public class MovieService {
             //save the CommentLike object in the repository
             commentLikeRepository.save(commentLike);
             //add the CommentLike to the list of CommentLikes in the comment object
-            List<CommentLike> commentLikeList = movieComment.getCommentLikeList();
+
             commentLikeList.add(commentLike);
             movieComment.setCommentLikeList(commentLikeList);
             //save the comment in the comment repository
