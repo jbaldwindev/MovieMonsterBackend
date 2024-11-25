@@ -196,9 +196,7 @@ public class MovieService {
             List<CommentLike> commentLikeList = movieComment.getCommentLikeList();
             //make sure that the user can only like a comment once and not more than once
             for (CommentLike cLike : commentLikeList) {
-                System.out.println("Comment like username: " + cLike.getUsername());
-                System.out.println("dto username: " + cLike.getUsername());
-                if (cLike.getUsername() == commentLikeDto.getUsername()) {
+                if (cLike.getUsername().equals(commentLikeDto.getUsername())) {
                     return;
                 }
             }
