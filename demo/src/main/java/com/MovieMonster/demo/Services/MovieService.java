@@ -172,7 +172,9 @@ public class MovieService {
                 newCommentDto.setLikeCount(comment.getCommentLikeList().size());
                 Boolean usernameFound = false;
                 for (CommentLike commentLike : comment.getCommentLikeList()) {
-                    if (commentLike.getUsername() == commentRequestDto.getUsername()) {
+                    System.out.println("CommentLike username: " + commentLike.getUsername());
+                    System.out.println("Comment request username: " + commentRequestDto.getUsername());
+                    if (commentLike.getUsername().equals(commentRequestDto.getUsername())) {
                         usernameFound = true;
                     }
                 }
