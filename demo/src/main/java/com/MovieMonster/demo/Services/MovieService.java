@@ -68,7 +68,6 @@ public class MovieService {
         Optional<UserEntity> retrievedUser = userRepository.findById(userId);
         if (retrievedUser.isPresent()) {
             UserEntity user = retrievedUser.get();
-            System.out.println("Retrieved user's ID: " + user.getId());
             MovieList movieList = new MovieList();
             ArrayList<MovieRating> movieRatings = new ArrayList<MovieRating>();
             movieList.setMovieRatingList(movieRatings);
@@ -87,7 +86,6 @@ public class MovieService {
             for (int i = 0; i < movieRatings.size(); i++) {
                 MovieRating movieRating = movieRatings.get(i);
                 if (movieRating.getMovieId() == movieId) {
-                    System.out.println("the movie was rated once before");
                     movieFound = true;
                     movieRating.setRating(rating);
                     movieRatingRepository.save(movieRating);
@@ -172,8 +170,6 @@ public class MovieService {
                 newCommentDto.setLikeCount(comment.getCommentLikeList().size());
                 Boolean usernameFound = false;
                 for (CommentLike commentLike : comment.getCommentLikeList()) {
-                    System.out.println("CommentLike username: " + commentLike.getUsername());
-                    System.out.println("Comment request username: " + commentRequestDto.getUsername());
                     if (commentLike.getUsername().equals(commentRequestDto.getUsername())) {
                         usernameFound = true;
                     }
@@ -196,7 +192,8 @@ public class MovieService {
         if (fetchedMovieComment.isPresent()) {
             MovieComment movieComment = fetchedMovieComment.get();
             List<CommentLike> commentLikeList = movieComment.getCommentLikeList();
-            //make sure that the user can only like a comment once and not more than once
+            //TODO instead of just returning here, remove this code, and have a separate
+            //dislike comment function delete the comment like
             for (CommentLike cLike : commentLikeList) {
                 if (cLike.getUsername().equals(commentLikeDto.getUsername())) {
                     return;
@@ -217,6 +214,27 @@ public class MovieService {
         }
     }
 
+    public void unlikeComment(CommentLikeDto commentLikeDto) {
+        Optional<MovieComment> fetchedMovieComment = movieCommentRepository.findById(commentLikeDto.getCommentId());
+        if (fetchedMovieComment.isPresent()) {
+            MovieComment movieComment = fetchedMovieComment.get();
+            List<CommentLike> commentLikeList = movieComment.getCommentLikeList();
+            for (int i = 0; i < commentLikeList.size(); i++) {
+                if (commentLikeList.get(i).getUsername().equals(commentLikeDto.getUsername())) {
+                    CommentLike commentLike = commentLikeList.get(i);
+                    System.out.println("Comment like username: " + commentLike.getUsername());
+                    System.out.println("Comment Like id: " + commentLike.getId());
+                    commentLikeRepository.deleteById(commentLike.getId());
+                    commentLikeList.remove(i);
+                    i--;
+                }
+            }
+            movieComment.setCommentLikeList(commentLikeList);
+            movieCommentRepository.save(movieComment);
+
+        }
+    }
+
     public void postComment(MovieCommentDto movieCommentDto) {
         int movieId = movieCommentDto.getMovieId();
         Optional<Movie> fetchedMovie = movieRepository.findByMovieId(movieId);
@@ -231,8 +249,6 @@ public class MovieService {
             movieCommentRepository.save(movieComment);
             //add the comment to the movie's comment list
             List<MovieComment> movieCommentList = movie.getMovieCommentList();
-            System.out.println("Here is the current movie comment list:");
-            System.out.println(movieCommentList);
             movieCommentList.add(movieComment);
             movie.setMovieCommentList(movieCommentList);
             //save the movie in the movie repository

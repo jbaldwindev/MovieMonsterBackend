@@ -25,6 +25,6 @@ public class MovieComment {
     @JoinColumn(name="movie_id", referencedColumnName = "id")
     private Movie movie;
 
-    @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     private List<CommentLike> commentLikeList = new ArrayList<>();
 }

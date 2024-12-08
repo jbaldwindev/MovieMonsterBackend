@@ -36,6 +36,14 @@ public class MovieController {
         return new ResponseEntity<>("Comment liked!", HttpStatus.OK);
     }
 
+    @PostMapping("/unlike-comment")
+    public ResponseEntity<String> unlikeComment(@RequestBody CommentLikeDto commentLikeDto) {
+        System.out.println("unlike request received");
+        //TODO call function in movieService
+        movieService.unlikeComment(commentLikeDto);
+        return new ResponseEntity<>("Like removed from comment", HttpStatus.OK);
+    }
+
     @GetMapping("/get-comments/{username}&filmId={movieId}")
     public CommentListDto getComments(@PathVariable String username, @PathVariable int movieId) {
         CommentRequestDto commentRequestDto = new CommentRequestDto(movieId, username);
