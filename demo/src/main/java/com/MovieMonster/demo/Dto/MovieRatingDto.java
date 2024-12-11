@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 public class MovieRatingDto {
     private String username;
     private String movieTitle;
+    private int ratingId;
     private int movieId;
     private int movieRating;
 }

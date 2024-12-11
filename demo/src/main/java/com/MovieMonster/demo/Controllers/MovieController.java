@@ -76,6 +76,13 @@ public class MovieController {
         return movieService.getUserMovieList(username, sortOrder);
     }
 
+    @DeleteMapping("/delete-rating/{username}/{ratingId}")
+    public ResponseEntity<String> deleteRating(@PathVariable String username, @PathVariable int ratingId) {
+        System.out.println("Deleting rating with id " + ratingId);
+        movieService.deleteRating(username, ratingId);
+        return new ResponseEntity<>("Rating deleted!", HttpStatus.OK);
+    }
+
     @GetMapping("/check-rating/{username}/{movieId}")
     public ResponseEntity<MovieRatingDto> checkRating(@PathVariable String username, @PathVariable int movieId) {
         MovieRatingDto movieRatingDto;

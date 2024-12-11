@@ -123,6 +123,10 @@ public class MovieService {
         return null;
     }
 
+    public void deleteRating(String username, int ratingId) {
+        movieRatingRepository.deleteById(ratingId);
+    }
+
     public ArrayList<MovieRatingDto> getUserMovieList(String username, SortOrder sortOrder) {
         Optional<UserEntity> retrievedUser = userRepository.findByUsername(username);
         if (retrievedUser.isPresent()) {
@@ -139,6 +143,7 @@ public class MovieService {
             ArrayList<MovieRatingDto> movieRatingArrList = new ArrayList<MovieRatingDto>();
             for (MovieRating rating : movieRatingList) {
                 MovieRatingDto movieRatingDto = new MovieRatingDto();
+                movieRatingDto.setRatingId(rating.getId());
                 movieRatingDto.setMovieId(rating.getMovieId());
                 movieRatingDto.setMovieTitle(rating.getTitle());
                 movieRatingDto.setMovieRating(rating.getRating());
