@@ -30,4 +30,14 @@ public class UserEntity {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "list_id", referencedColumnName = "id")
     private MovieList movieList;
+
+    @ManyToMany
+    @JoinTable(name="user_friends",
+            joinColumns = @JoinColumn(name="user_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name="friend_id", referencedColumnName = "id"))
+    private List<UserEntity> friends = new ArrayList<>();
+    @OneToMany(mappedBy = "sender")
+    private List<FriendRequest> sentRequests = new ArrayList<>();
+    @OneToMany(mappedBy = "receiver")
+    private List<FriendRequest> receivedRequests = new ArrayList<>();
 }
