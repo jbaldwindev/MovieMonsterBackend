@@ -1,6 +1,8 @@
 package com.MovieMonster.demo.Controllers;
 
+import com.MovieMonster.demo.Dto.FriendListDto;
 import com.MovieMonster.demo.Dto.RequestListDto;
+import com.MovieMonster.demo.Dto.RequestResponseDto;
 import com.MovieMonster.demo.Dto.SendRequestDto;
 import com.MovieMonster.demo.Services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,12 @@ public class UserController {
         return new ResponseEntity<String>("Friend added!", HttpStatus.OK);
     }
 
+    @PostMapping("/request-response")
+    public ResponseEntity<String> RespondRequest(@RequestBody RequestResponseDto requestResponseDto) {
+        userService.handleRequestResponse(requestResponseDto);
+        return new ResponseEntity<String>("Friend request response handled!", HttpStatus.OK);
+    }
+
     @PostMapping("/send-request")
     public ResponseEntity<String> SendRequest(@RequestBody SendRequestDto sendRequestDto) {
         userService.sendRequest(sendRequestDto.getSenderUsername(), sendRequestDto.getReceiverUsername());
@@ -35,4 +43,10 @@ public class UserController {
         return userService.getReceivedRequests(username);
     }
     //TODO implement check request sent/or check friend status
+
+    //TODO implement get friend list
+    @GetMapping("/get-friends/{username}")
+    public FriendListDto GetFriendList(@PathVariable String username) {
+        return userService.getFriendList(username);
+    }
 }

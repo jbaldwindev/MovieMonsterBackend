@@ -1,7 +1,9 @@
 package com.MovieMonster.demo.Services;
 
+import com.MovieMonster.demo.Dto.FriendListDto;
 import com.MovieMonster.demo.Dto.FriendRequestDto;
 import com.MovieMonster.demo.Dto.RequestListDto;
+import com.MovieMonster.demo.Dto.RequestResponseDto;
 import com.MovieMonster.demo.Models.FriendRequest;
 import com.MovieMonster.demo.Models.RequestStatus;
 import com.MovieMonster.demo.Models.UserEntity;
@@ -33,8 +35,12 @@ public class UserService {
             friend.getFriends().add(user);
             userRepository.save(user);
             userRepository.save(friend);
+        } else {
+            throw new IllegalArgumentException("Sender or receiver does not exist");
         }
     }
+
+    //TODO implement removeFriend function
 
     public void sendRequest(String senderUsername, String receiverUsername) {
         UserEntity sender;
@@ -62,12 +68,26 @@ public class UserService {
         userRepository.save(receiver);
     }
 
-    public void acceptRequest() {
-
-    }
-
-    public void denyRequest() {
-
+    public void handleRequestResponse(RequestResponseDto requestResponseDto) {
+        System.out.println("request id: " + requestResponseDto.getRequestId());
+        System.out.println("request is accepted: " + requestResponseDto.getIsAccepted());
+        Optional<FriendRequest> retrievedRequest = friendRequestRepository.findById(requestResponseDto.getRequestId());
+        if (retrievedRequest.isPresent()) {
+            FriendRequest friendRequest = retrievedRequest.get();
+            UserEntity sender = friendRequest.getSender();
+            UserEntity receiver = friendRequest.getReceiver();
+            if (requestResponseDto.getIsAccepted()) {
+                System.out.println("The thing is making it in this if statement");
+                addFriend(sender.getUsername(), receiver.getUsername());
+            }
+            sender.getSentRequests().remove(friendRequest);
+            receiver.getReceivedRequests().remove(friendRequest);
+            userRepository.save(sender);
+            userRepository.save(receiver);
+            friendRequestRepository.delete(friendRequest);
+        } else {
+            throw new IllegalArgumentException("Friend request does not exist");
+        }
     }
 
     public RequestListDto getReceivedRequests(String username) {
@@ -89,6 +109,22 @@ public class UserService {
             return requestListDto;
         } else {
             throw new IllegalArgumentException("User " + username + " not found");
+        }
+    }
+
+    public FriendListDto getFriendList(String username) {
+        Optional<UserEntity> retrievedUser = userRepository.findByUsername(username);
+        if (retrievedUser.isPresent()) {
+            ArrayList<String> friendList = new ArrayList<String>();
+            UserEntity user = retrievedUser.get();
+            for (UserEntity friend : user.getFriends()) {
+                friendList.add(friend.getUsername());
+            }
+            FriendListDto friendListDto = new FriendListDto();
+            friendListDto.setFriends(friendList);
+            return friendListDto;
+        } else {
+            throw new IllegalArgumentException("User " + username + " could not be found");
         }
     }
 }
