@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -64,6 +65,19 @@ public class UserService {
         receiver.getReceivedRequests().add(friendRequest);
         userRepository.save(sender);
         userRepository.save(receiver);
+    }
+
+    public SearchListDto getUserSearch(String username) {
+        List<UserEntity> searchedUsers =  userRepository.findSimilarUsernames(username);
+        ArrayList<String> usernames = new ArrayList<>();
+        if (!searchedUsers.isEmpty()) {
+            for (UserEntity user : searchedUsers) {
+                usernames.add(user.getUsername());
+            }
+        }
+        SearchListDto searchListDto = new SearchListDto();
+        searchListDto.setUsernames(usernames);
+        return searchListDto;
     }
 
     public FriendStatusDto getFriendStatus(String user1Name, String user2Name) {
