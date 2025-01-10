@@ -1,9 +1,6 @@
 package com.MovieMonster.demo.Controllers;
 
-import com.MovieMonster.demo.Dto.FriendListDto;
-import com.MovieMonster.demo.Dto.RequestListDto;
-import com.MovieMonster.demo.Dto.RequestResponseDto;
-import com.MovieMonster.demo.Dto.SendRequestDto;
+import com.MovieMonster.demo.Dto.*;
 import com.MovieMonster.demo.Services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,7 +14,6 @@ public class UserController {
 
     @Autowired
     UserService userService;
-    //TODO implement function to handle accepting/denying friend request
 
     @PostMapping("/add-friend/{username}")
     public ResponseEntity<String> AddFriend(@PathVariable String username, @RequestParam("friend") String friendUsername) {
@@ -37,14 +33,34 @@ public class UserController {
         return new ResponseEntity<String>("Request sent!", HttpStatus.OK);
     }
 
-    //TODO implement get sent requests
     @GetMapping("/received-requests/{username}")
     public RequestListDto GetReceivedRequests(@PathVariable String username) {
         return userService.getReceivedRequests(username);
     }
-    //TODO implement check request sent/or check friend status
 
-    //TODO implement get friend list
+    @GetMapping("/{user1}/get-friend-status/{user2}")
+    public FriendStatusDto GetFriendStatus(@PathVariable String user1, @PathVariable String user2) {
+        return userService.getFriendStatus(user1, user2);
+    }
+
+    @GetMapping("/sent-requests/{username}")
+    public RequestListDto GetSentRequests(@PathVariable String username) {
+        return userService.getSentRequests(username);
+    }
+
+    @DeleteMapping("{sender}/requests/{receiver}")
+    public ResponseEntity<String> deleteFriendRequest(@PathVariable String sender,
+                                                      @PathVariable String receiver) {
+        userService.deleteFriendRequest(sender, receiver);
+        return new ResponseEntity<String>("Request successfully deleted", HttpStatus.OK);
+    }
+
+    @DeleteMapping("{user1}/friends/{user2}")
+    public ResponseEntity<String> RemoveFriend(@PathVariable String user1, @PathVariable String user2) {
+        userService.removeFriend(user1, user2);
+        return new ResponseEntity<String>("Friend successfully removed!", HttpStatus.OK);
+    }
+
     @GetMapping("/get-friends/{username}")
     public FriendListDto GetFriendList(@PathVariable String username) {
         return userService.getFriendList(username);
