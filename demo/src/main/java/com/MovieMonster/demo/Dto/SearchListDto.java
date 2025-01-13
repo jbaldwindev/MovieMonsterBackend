@@ -6,5 +6,5 @@ import java.util.ArrayList;
 
 @Data
 public class SearchListDto {
-    private ArrayList<String> usernames;
+    private ArrayList<FriendStatusDto> userConnections;
 }

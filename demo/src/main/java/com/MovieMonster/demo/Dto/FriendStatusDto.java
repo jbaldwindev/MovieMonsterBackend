@@ -8,4 +8,5 @@ public class FriendStatusDto {
     private Boolean requestPending;
     private String senderUsername;
     private String receiverUsername;
+    private String requestedUsername;
 }

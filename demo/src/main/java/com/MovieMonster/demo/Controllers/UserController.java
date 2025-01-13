@@ -66,8 +66,8 @@ public class UserController {
         return userService.getFriendList(username);
     }
 
-    @GetMapping("/search-users/{username}")
-    public SearchListDto GetUserSearch(@PathVariable String username) {
-        return userService.getUserSearch(username);
+    @GetMapping("{searcher}/search-users/{username}")
+    public SearchListDto GetUserSearch(@PathVariable String searcher, @PathVariable String username) {
+        return userService.getUserSearch(searcher, username);
     }
 }

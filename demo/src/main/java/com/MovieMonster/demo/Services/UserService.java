@@ -67,16 +67,18 @@ public class UserService {
         userRepository.save(receiver);
     }
 
-    public SearchListDto getUserSearch(String username) {
-        List<UserEntity> searchedUsers =  userRepository.findSimilarUsernames(username);
-        ArrayList<String> usernames = new ArrayList<>();
+    public SearchListDto getUserSearch(String requestingUsername, String searchedUsername) {
+        List<UserEntity> searchedUsers =  userRepository.findSimilarUsernames(searchedUsername);
+        ArrayList<FriendStatusDto> connectionStatusList = new ArrayList<>();
         if (!searchedUsers.isEmpty()) {
             for (UserEntity user : searchedUsers) {
-                usernames.add(user.getUsername());
+                FriendStatusDto friendStatusDto = getFriendStatus(requestingUsername, user.getUsername());
+                friendStatusDto.setRequestedUsername(user.getUsername());
+                connectionStatusList.add(friendStatusDto);
             }
         }
         SearchListDto searchListDto = new SearchListDto();
-        searchListDto.setUsernames(usernames);
+        searchListDto.setUserConnections(connectionStatusList);
         return searchListDto;
     }
 
