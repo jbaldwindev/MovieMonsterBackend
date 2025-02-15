@@ -72,6 +72,7 @@ public class UserService {
         ArrayList<FriendStatusDto> connectionStatusList = new ArrayList<>();
         if (!searchedUsers.isEmpty()) {
             for (UserEntity user : searchedUsers) {
+                if (requestingUsername.equals(user.getUsername())) continue;
                 FriendStatusDto friendStatusDto = getFriendStatus(requestingUsername, user.getUsername());
                 friendStatusDto.setRequestedUsername(user.getUsername());
                 connectionStatusList.add(friendStatusDto);
