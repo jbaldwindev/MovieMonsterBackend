@@ -6,6 +6,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
@@ -69,5 +76,31 @@ public class UserController {
     @GetMapping("{searcher}/search-users/{username}")
     public SearchListDto GetUserSearch(@PathVariable String searcher, @PathVariable String username) {
         return userService.getUserSearch(searcher, username);
+    }
+
+    @PostMapping("/upload-icon")
+    public ResponseEntity<String> UploadIcon(@RequestParam("file") MultipartFile file) {
+        try {
+            String uploadDir = System.getProperty("user.home") + "/uploads";
+
+            Path dirPath = Paths.get(uploadDir);
+            if (!Files.exists(dirPath)) {
+                Files.createDirectories(dirPath);
+            }
+
+            String filename = file.getOriginalFilename();
+            if (filename == null || filename.isEmpty() || filename.equals("blob")) {
+                filename = "uploaded_" + System.currentTimeMillis() + ".png";
+            }
+
+            File destinationFile = dirPath.resolve(filename).toFile();
+            file.transferTo(destinationFile);
+
+            return ResponseEntity.ok("Upload Completed: " + file.getOriginalFilename());
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Upload failed: " + e.getMessage());
+        }
     }
 }
