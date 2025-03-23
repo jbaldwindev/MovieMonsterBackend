@@ -40,4 +40,5 @@ public class UserEntity {
     private List<FriendRequest> sentRequests = new ArrayList<>();
     @OneToMany(mappedBy = "receiver")
     private List<FriendRequest> receivedRequests = new ArrayList<>();
+    private String icon;
 }

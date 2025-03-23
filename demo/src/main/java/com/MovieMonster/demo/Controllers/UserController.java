@@ -3,6 +3,7 @@ package com.MovieMonster.demo.Controllers;
 import com.MovieMonster.demo.Dto.*;
 import com.MovieMonster.demo.Services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -78,29 +79,13 @@ public class UserController {
         return userService.getUserSearch(searcher, username);
     }
 
-    @PostMapping("/upload-icon")
-    public ResponseEntity<String> UploadIcon(@RequestParam("file") MultipartFile file) {
-        try {
-            String uploadDir = System.getProperty("user.home") + "/uploads";
+    @PostMapping("/upload-icon/{username}")
+    public ResponseEntity<String> UploadIcon(@RequestParam("file") MultipartFile file, @PathVariable String username) {
+        return userService.UploadIcon(file, username);
+    }
 
-            Path dirPath = Paths.get(uploadDir);
-            if (!Files.exists(dirPath)) {
-                Files.createDirectories(dirPath);
-            }
-
-            String filename = file.getOriginalFilename();
-            if (filename == null || filename.isEmpty() || filename.equals("blob")) {
-                filename = "uploaded_" + System.currentTimeMillis() + ".png";
-            }
-
-            File destinationFile = dirPath.resolve(filename).toFile();
-            file.transferTo(destinationFile);
-
-            return ResponseEntity.ok("Upload Completed: " + file.getOriginalFilename());
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Upload failed: " + e.getMessage());
-        }
+    @GetMapping("/icon/{username}")
+    public ResponseEntity<Resource> GetIcon(@PathVariable String username) {
+        return userService.getIcon(username);
     }
 }

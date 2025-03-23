@@ -353,8 +353,12 @@ public class MovieService {
             Movie movie = new Movie();
             movie.setId(results.getJSONObject(i).getInt("id"));
             movie.setOriginalTitle(results.getJSONObject(i).getString("original_title"));
-            String posterPath = "https://image.tmdb.org/t/p/w500" + results.getJSONObject(i).getString("poster_path");
-            movie.setPosterPath(posterPath);
+            if (!results.getJSONObject(i).isNull("poster_path")) {
+                String posterPath = "https://image.tmdb.org/t/p/w500" + results.getJSONObject(i).getString("poster_path");
+                movie.setPosterPath(posterPath);
+            } else {
+                movie.setPosterPath("none");
+            }
             movie.setOverview(results.getJSONObject(i).getString("overview"));
             ArrayList<Movie> movieList = movieListDto.getMovieList();
             movieList.add(movie);

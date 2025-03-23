@@ -7,8 +7,20 @@ import com.MovieMonster.demo.Models.UserEntity;
 import com.MovieMonster.demo.Repositories.FriendRequestRepository;
 import com.MovieMonster.demo.Repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -212,6 +224,37 @@ public class UserService {
         }
     }
 
+    public ResponseEntity<String> UploadIcon(MultipartFile file, String username) {
+        try {
+            Optional<UserEntity> retrievedUser = userRepository.findByUsername(username);
+            if (retrievedUser.isPresent()) {
+                UserEntity user = retrievedUser.get();
+                String uploadDir = System.getProperty("user.home") + "/uploads";
+
+                Path dirPath = Paths.get(uploadDir);
+                if (!Files.exists(dirPath)) {
+                    Files.createDirectories(dirPath);
+                }
+
+                String filename = file.getOriginalFilename();
+                if (filename == null || filename.isEmpty() || filename.equals("blob")) {
+                    filename = "uploaded_" + System.currentTimeMillis() + ".png";
+                }
+
+                File destinationFile = dirPath.resolve(filename).toFile();
+                file.transferTo(destinationFile);
+                user.setIcon(filename);
+                userRepository.save(user);
+                return ResponseEntity.ok("Upload Completed: " + file.getOriginalFilename());
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User not found");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Upload failed: " + e.getMessage());
+        }
+    }
+
     public FriendListDto getFriendList(String username) {
         Optional<UserEntity> retrievedUser = userRepository.findByUsername(username);
         if (retrievedUser.isPresent()) {
@@ -226,5 +269,28 @@ public class UserService {
         } else {
             throw new IllegalArgumentException("User " + username + " could not be found");
         }
+    }
+
+    public ResponseEntity<Resource> getIcon(String username) {
+        Optional<UserEntity> retrievedUser = userRepository.findByUsername(username);
+        if (retrievedUser.isPresent()) {
+            UserEntity user = retrievedUser.get();
+            String uploadPath = System.getProperty("user.home") + "/uploads";
+            Path filePath = Paths.get(uploadPath).resolve(user.getIcon());
+            if (!Files.exists(filePath)) {
+                return ResponseEntity.notFound().build();
+            }
+            try {
+                String contentType = Files.probeContentType(filePath);
+                Resource resource = new UrlResource(filePath.toUri());
+                return ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(contentType != null ? contentType : "application/octet-stream"))
+                        .body(resource);
+            } catch (IOException e) {
+                System.err.println(e);
+                return ResponseEntity.notFound().build();
+            }
+        }
+        return ResponseEntity.internalServerError().build();
     }
 }
