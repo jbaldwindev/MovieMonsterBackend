@@ -276,7 +276,12 @@ public class UserService {
         if (retrievedUser.isPresent()) {
             UserEntity user = retrievedUser.get();
             String uploadPath = System.getProperty("user.home") + "/uploads";
-            Path filePath = Paths.get(uploadPath).resolve(user.getIcon());
+            Path filePath;
+            if (user.getIcon() == null) {
+                filePath = Paths.get(uploadPath).resolve("default.jpg");
+            } else {
+                filePath = Paths.get(uploadPath).resolve(user.getIcon());
+            }
             if (!Files.exists(filePath)) {
                 return ResponseEntity.notFound().build();
             }
