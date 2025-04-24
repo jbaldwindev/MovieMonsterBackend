@@ -298,4 +298,77 @@ public class UserService {
         }
         return ResponseEntity.internalServerError().build();
     }
+
+    public ProfileInfoDto getProfileInfo(String username) {
+        Optional<UserEntity> retrievedUser = userRepository.findByUsername(username);
+        if (retrievedUser.isPresent()) {
+            UserEntity user = retrievedUser.get();
+            ProfileInfoDto profileInfoDto = new ProfileInfoDto();
+            profileInfoDto.setUsername(user.getUsername());
+            if (user.getJoinDate() == null) {
+                user.setJoinDate(LocalDateTime.now());
+                userRepository.save(user);
+            }
+            profileInfoDto.setJoinDate(user.getJoinDate());
+            profileInfoDto.setFriendCount(user.getFriends().size());
+            return profileInfoDto;
+        }
+        return new ProfileInfoDto();
+    }
+    public ResponseEntity<String> addFavorite(String username, int movieId) {
+        Optional<UserEntity> retrievedUser = userRepository.findByUsername(username);
+        if (retrievedUser.isPresent()) {
+            UserEntity user = retrievedUser.get();
+            List<Integer> favorites = user.getFavorites();
+            if (favorites != null && favorites.size() >= 10) {
+                return new ResponseEntity<String>("User has reached max limit of favorites (10)", HttpStatus.BAD_REQUEST);
+            } else {
+                if (favorites == null) {
+                    favorites = new ArrayList<Integer>();
+                }
+                if (favorites.contains(movieId)) {
+                    return new ResponseEntity<String>("Movie is already in favorites", HttpStatus.BAD_REQUEST);
+                }
+                favorites.add(movieId);
+                user.setFavorites(favorites);
+                userRepository.save(user);
+                return new ResponseEntity<String>("Movie successfully added to favorites", HttpStatus.OK);
+            }
+        } else {
+            return new ResponseEntity<String>("User not found", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    public ResponseEntity<String> removeFavorite(String username, int movieId) {
+        Optional<UserEntity> retrievedUser = userRepository.findByUsername(username);
+        if (retrievedUser.isPresent()) {
+            UserEntity user = retrievedUser.get();
+            List<Integer> favorites = user.getFavorites();
+            if (favorites.size() < 1) {
+                return new ResponseEntity<String>("User has no favorites to remove", HttpStatus.BAD_REQUEST);
+            } else {
+                for (Integer fav : favorites) {
+                    if (fav.equals(movieId)) {
+                        favorites.remove(fav);
+                        user.setFavorites(favorites);
+                        userRepository.save(user);
+                        return new ResponseEntity<String>("Successfully removed from favorites", HttpStatus.OK);
+                    }
+                }
+                return new ResponseEntity<String>("Movie not found in favorites list", HttpStatus.BAD_REQUEST);
+            }
+        } else {
+            return new ResponseEntity<String>("User not found", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    public ResponseEntity<List<Integer>> getFavorites(String username) {
+        Optional<UserEntity> retrievedUser = userRepository.findByUsername(username);
+        if (retrievedUser.isPresent()) {
+            UserEntity user = retrievedUser.get();
+            return new ResponseEntity<List<Integer>>(user.getFavorites(), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
 }

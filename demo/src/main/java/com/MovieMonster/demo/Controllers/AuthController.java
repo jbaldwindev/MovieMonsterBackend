@@ -23,6 +23,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -65,6 +66,7 @@ public class AuthController {
 
         Role roles = roleRepository.findByName("USER").get();
         user.setRoles(Collections.singletonList(roles));
+        user.setJoinDate(LocalDateTime.now());
         userRepository.save(user);
         movieService.createMovieList(user.getId());
         return new ResponseEntity<>("User has been registered", HttpStatus.OK);

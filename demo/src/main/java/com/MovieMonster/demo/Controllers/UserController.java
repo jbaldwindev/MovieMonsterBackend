@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
@@ -87,5 +88,24 @@ public class UserController {
     @GetMapping("/icon/{username}")
     public ResponseEntity<Resource> GetIcon(@PathVariable String username) {
         return userService.getIcon(username);
+    }
+    @GetMapping("/profile/{username}")
+    public ProfileInfoDto GetProfileInfo(@PathVariable String username) {
+        return userService.getProfileInfo(username);
+    }
+
+    @PostMapping("/{username}/favorites/add")
+    public ResponseEntity<String> AddFavorite(@PathVariable String username, @RequestParam int movieId) {
+        return userService.addFavorite(username, movieId);
+    }
+
+    @DeleteMapping("/{username}/favorites/remove")
+    public ResponseEntity<String> RemoveFavorite(@PathVariable String username, @RequestParam int movieId) {
+        return userService.removeFavorite(username, movieId);
+    }
+
+    @GetMapping("/{username}/favorites/all")
+    public ResponseEntity<List<Integer>> GetFavorites(@PathVariable String username) {
+        return userService.getFavorites(username);
     }
 }

@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,4 +42,6 @@ public class UserEntity {
     @OneToMany(mappedBy = "receiver")
     private List<FriendRequest> receivedRequests = new ArrayList<>();
     private String icon;
+    private LocalDateTime joinDate;
+    private List<Integer> favorites = new ArrayList<>();
 }
