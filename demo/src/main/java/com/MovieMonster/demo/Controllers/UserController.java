@@ -108,4 +108,13 @@ public class UserController {
     public ResponseEntity<List<Integer>> GetFavorites(@PathVariable String username) {
         return userService.getFavorites(username);
     }
+
+    @PostMapping("/favorites/rank")
+    public ResponseEntity<String> ChangeFavoritesRanking(@RequestBody RankingRequestDto rankingRequestDto) {
+        return userService.changeFavoritesRanking(
+                rankingRequestDto.getUsername(),
+                rankingRequestDto.getMovieId(),
+                rankingRequestDto.getRankingDirection()
+        );
+    }
 }

@@ -2,6 +2,7 @@ package com.MovieMonster.demo.Services;
 
 import com.MovieMonster.demo.Dto.*;
 import com.MovieMonster.demo.Models.FriendRequest;
+import com.MovieMonster.demo.Models.RankingDirection;
 import com.MovieMonster.demo.Models.RequestStatus;
 import com.MovieMonster.demo.Models.UserEntity;
 import com.MovieMonster.demo.Repositories.FriendRequestRepository;
@@ -311,6 +312,7 @@ public class UserService {
             }
             profileInfoDto.setJoinDate(user.getJoinDate());
             profileInfoDto.setFriendCount(user.getFriends().size());
+            profileInfoDto.setFavoriteIds(user.getFavorites());
             return profileInfoDto;
         }
         return new ProfileInfoDto();
@@ -369,6 +371,40 @@ public class UserService {
             return new ResponseEntity<List<Integer>>(user.getFavorites(), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    public ResponseEntity<String> changeFavoritesRanking(String username, int movieId, RankingDirection rankDirection) {
+        Optional<UserEntity> retrievedUser = userRepository.findByUsername(username);
+        if (retrievedUser.isPresent()) {
+            UserEntity user = retrievedUser.get();
+            List<Integer> favoritesList = user.getFavorites();
+            int filmIndex = favoritesList.indexOf(movieId);
+            if (filmIndex == 0 && rankDirection == RankingDirection.UP) {
+                return new ResponseEntity<String>("Film is already ranked #1 in your favorites", HttpStatus.BAD_REQUEST);
+            }
+
+            if (filmIndex >= 0) {
+                if (rankDirection == RankingDirection.UP) {
+                    int upperFilmIndex = filmIndex - 1;
+                    favoritesList.set(filmIndex, favoritesList.get(upperFilmIndex));
+                    favoritesList.set(upperFilmIndex, movieId);
+                } else if (rankDirection == RankingDirection.DOWN) {
+                    if (filmIndex == favoritesList.size() - 1) {
+                        return new ResponseEntity<String>("Film is already ranked last in your favorites list", HttpStatus.BAD_REQUEST);
+                    }
+                    int lowerFilmIndex = filmIndex + 1;
+                    favoritesList.set(filmIndex, favoritesList.get(lowerFilmIndex));
+                    favoritesList.set(lowerFilmIndex, movieId);
+                }
+                user.setFavorites(favoritesList);
+                userRepository.save(user);
+                return new ResponseEntity<String>("Favorites ranking successfully changed", HttpStatus.OK);
+            } else {
+                return new ResponseEntity<String>("Movie not currently in favorites list", HttpStatus.BAD_REQUEST);
+            }
+        } else {
+            return new ResponseEntity<String>("User not found", HttpStatus.BAD_REQUEST);
         }
     }
 }
