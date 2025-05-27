@@ -117,4 +117,14 @@ public class UserController {
                 rankingRequestDto.getRankingDirection()
         );
     }
+
+    @PostMapping("/bio")
+    public ResponseEntity<String> SetBio(@RequestBody BioDto bioDto) {
+        return userService.setBio(bioDto);
+    }
+
+    @GetMapping("/{username}/bio")
+    public ResponseEntity<String> GetBio(@PathVariable String username) {
+        return userService.getBio(username);
+    }
 }

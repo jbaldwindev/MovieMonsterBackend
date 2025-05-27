@@ -310,6 +310,11 @@ public class UserService {
                 user.setJoinDate(LocalDateTime.now());
                 userRepository.save(user);
             }
+            if (user.getBio() == null) {
+                user.setBio("User has not yet written their bio (but you can view their list to get a sense of what they enjoy!)");
+                userRepository.save(user);
+            }
+            profileInfoDto.setBio(user.getBio());
             profileInfoDto.setJoinDate(user.getJoinDate());
             profileInfoDto.setFriendCount(user.getFriends().size());
             profileInfoDto.setFavoriteIds(user.getFavorites());
@@ -371,6 +376,36 @@ public class UserService {
             return new ResponseEntity<List<Integer>>(user.getFavorites(), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    public ResponseEntity<String> setBio(BioDto bioDto) {
+        Optional<UserEntity> retrievedUser = userRepository.findByUsername(bioDto.getUsername());
+        if (retrievedUser.isPresent()) {
+            UserEntity user = retrievedUser.get();
+            user.setBio(bioDto.getBio());
+            userRepository.save(user);
+            return new ResponseEntity<String>("Bio successfully updated!", HttpStatus.OK);
+        } else {
+            return new ResponseEntity<String>("User not found", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    public ResponseEntity<String> getBio(String username) {
+        Optional<UserEntity> retrievedUser = userRepository.findByUsername(username);
+        if (retrievedUser.isPresent()) {
+            UserEntity user = retrievedUser.get();
+
+            if (user.getBio() == null || user.getBio().isEmpty()) {
+                user.setBio("User has not yet written their bio (but you can view their list to get a sense of what they enjoy!)");
+                userRepository.save(user);
+                return new ResponseEntity<String>(user.getBio(), HttpStatus.OK);
+            }
+
+            String bio = user.getBio();
+            return new ResponseEntity<String>(bio, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<String>("User not found!", HttpStatus.BAD_REQUEST);
         }
     }
 

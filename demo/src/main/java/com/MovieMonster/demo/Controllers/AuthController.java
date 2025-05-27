@@ -63,7 +63,7 @@ public class AuthController {
         UserEntity user = new UserEntity();
         user.setUsername(registerDto.getUsername());
         user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
-
+        user.setBio("User has not yet written their bio (but you can view their list to get a sense of what they enjoy!)");
         Role roles = roleRepository.findByName("USER").get();
         user.setRoles(Collections.singletonList(roles));
         user.setJoinDate(LocalDateTime.now());

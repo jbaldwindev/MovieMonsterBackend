@@ -13,4 +13,5 @@ public class ProfileInfoDto {
     LocalDateTime joinDate;
     int friendCount;
     List<Integer> favoriteIds;
+    String bio;
 }

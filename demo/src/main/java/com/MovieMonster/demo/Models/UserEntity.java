@@ -44,4 +44,6 @@ public class UserEntity {
     private String icon;
     private LocalDateTime joinDate;
     private List<Integer> favorites = new ArrayList<>();
+    @Column(length = 1000)
+    private String bio;
 }
