@@ -6,5 +6,5 @@ import java.util.ArrayList;
 
 @Data
 public class FriendListDto {
-    private ArrayList<String> friends;
+    private ArrayList<FriendDto> friends;
 }

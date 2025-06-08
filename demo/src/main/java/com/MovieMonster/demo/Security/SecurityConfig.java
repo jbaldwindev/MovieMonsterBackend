@@ -40,6 +40,7 @@ public class SecurityConfig {
                 .exceptionHandling((exception)-> exception.authenticationEntryPoint(authEntryPoint))
                 .sessionManagement((sessionManagement) -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeRequests()
+                .requestMatchers("/api/user/icon/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .anyRequest().authenticated()
                 .and()

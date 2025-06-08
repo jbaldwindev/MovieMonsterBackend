@@ -259,10 +259,13 @@ public class UserService {
     public FriendListDto getFriendList(String username) {
         Optional<UserEntity> retrievedUser = userRepository.findByUsername(username);
         if (retrievedUser.isPresent()) {
-            ArrayList<String> friendList = new ArrayList<String>();
+            ArrayList<FriendDto> friendList = new ArrayList<FriendDto>();
             UserEntity user = retrievedUser.get();
             for (UserEntity friend : user.getFriends()) {
-                friendList.add(friend.getUsername());
+                FriendDto friendDto = new FriendDto();
+                friendDto.setUsername(friend.getUsername());
+                friendDto.setIconPath("http://localhost:8080/api/user/icon/" + friend.getUsername());
+                friendList.add(friendDto);
             }
             FriendListDto friendListDto = new FriendListDto();
             friendListDto.setFriends(friendList);
@@ -288,9 +291,12 @@ public class UserService {
             }
             try {
                 String contentType = Files.probeContentType(filePath);
+                if (contentType == null) {
+                    contentType = "image/jpeg";
+                }
                 Resource resource = new UrlResource(filePath.toUri());
                 return ResponseEntity.ok()
-                        .contentType(MediaType.parseMediaType(contentType != null ? contentType : "application/octet-stream"))
+                        .contentType(MediaType.parseMediaType(contentType != null ? contentType : "image/jpeg"))
                         .body(resource);
             } catch (IOException e) {
                 System.err.println(e);
