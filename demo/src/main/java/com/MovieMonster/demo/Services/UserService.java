@@ -175,6 +175,7 @@ public class UserService {
             for (FriendRequest friendRequest : user.getReceivedRequests()) {
                 FriendRequestDto friendRequestDto = new FriendRequestDto();
                 friendRequestDto.setId(friendRequest.getId());
+                friendRequestDto.setSenderIcon("http://localhost:8080/api/user/icon/" + friendRequest.getSender().getUsername());
                 friendRequestDto.setReceiver(friendRequest.getReceiver().getUsername());
                 friendRequestDto.setSender(friendRequest.getSender().getUsername());
                 friendRequestDto.setRequestStatus(friendRequest.getRequestStatus());
@@ -213,6 +214,7 @@ public class UserService {
                 FriendRequestDto friendRequestDto = new FriendRequestDto();
                 friendRequestDto.setId(friendRequest.getId());
                 friendRequestDto.setReceiver(friendRequest.getReceiver().getUsername());
+                friendRequestDto.setReceiverIcon("http://localhost:8080/api/user/icon/" + friendRequest.getReceiver().getUsername());
                 friendRequestDto.setSender(friendRequest.getSender().getUsername());
                 friendRequestDto.setRequestStatus(friendRequest.getRequestStatus());
                 friendRequestDto.setLocalDateTime(friendRequest.getLocalDateTime());

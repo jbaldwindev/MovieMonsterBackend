@@ -11,7 +11,9 @@ import java.time.LocalDateTime;
 public class FriendRequestDto {
     private int id;
     private String sender;
+    private String senderIcon;
     private String receiver;
+    private String receiverIcon;
     private RequestStatus requestStatus;
     private LocalDateTime localDateTime;
 }
