@@ -9,4 +9,5 @@ public class FriendStatusDto {
     private String senderUsername;
     private String receiverUsername;
     private String requestedUsername;
+    private String searchedUserIcon;
 }

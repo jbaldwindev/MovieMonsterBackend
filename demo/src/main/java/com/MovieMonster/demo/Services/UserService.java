@@ -88,6 +88,7 @@ public class UserService {
                 if (requestingUsername.equals(user.getUsername())) continue;
                 FriendStatusDto friendStatusDto = getFriendStatus(requestingUsername, user.getUsername());
                 friendStatusDto.setRequestedUsername(user.getUsername());
+                friendStatusDto.setSearchedUserIcon("http://localhost:8080/api/user/icon/" + user.getUsername());
                 connectionStatusList.add(friendStatusDto);
             }
         }
