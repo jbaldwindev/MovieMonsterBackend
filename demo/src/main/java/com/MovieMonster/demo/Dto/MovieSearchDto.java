@@ -8,4 +8,5 @@ import lombok.NoArgsConstructor;
 public class MovieSearchDto {
     private int id;
     private String title;
+    private String posterPath;
 }

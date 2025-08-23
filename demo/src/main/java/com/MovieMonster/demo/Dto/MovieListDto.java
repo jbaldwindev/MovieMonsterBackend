@@ -11,4 +11,5 @@ import java.util.ArrayList;
 public class MovieListDto {
     private ArrayList<Movie> movieList;
     private ArrayList<MovieSearchDto> movieSearchList;
+    private int totalPages;
 }

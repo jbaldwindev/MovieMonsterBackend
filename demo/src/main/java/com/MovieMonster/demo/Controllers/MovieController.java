@@ -55,6 +55,11 @@ public class MovieController {
         return movieService.searchMovie(title);
     }
 
+    @GetMapping("/search/{title}/{page}")
+    public MovieListDto searchMovieAdvanced(@PathVariable String title, @PathVariable int page) {
+        return movieService.advancedSearch(title, page);
+    }
+
     @PostMapping("/rate")
     public ResponseEntity<String> rateMovie(@RequestBody MovieRatingDto movieRatingDto) {
         movieService.rateMovie(

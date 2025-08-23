@@ -64,6 +64,48 @@ public class MovieService {
         return movieListDto;
     }
 
+    public MovieListDto advancedSearch(String title, int page) {
+        String fullUri = "https://api.themoviedb.org/3/search/movie?query="
+                + title
+                + "&include_adult=false&language=en-US&page="
+                + page
+                + "&api_key="
+                + tmdbKey;
+        String jsonResponse = apiClient
+                .get()
+                .uri(fullUri)
+                .exchange()
+                .block()
+                .bodyToMono(String.class)
+                .block();
+        MovieListDto movieListDto = new MovieListDto();
+        ArrayList<MovieSearchDto> movieSearchList = new ArrayList<MovieSearchDto>();
+        JSONObject obj = new JSONObject(jsonResponse);
+        int totalPages = obj.getInt("total_pages");
+        movieListDto.setTotalPages(totalPages);
+        if (page > totalPages) {
+            return movieListDto;
+        }
+        JSONArray jsonArray = obj.getJSONArray("results");
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONObject movieJsonObj = jsonArray.getJSONObject(i);
+            MovieSearchDto movieSearchDto = new MovieSearchDto();
+            movieSearchDto.setId(movieJsonObj.getInt("id"));
+            String posterPath;
+            try {
+                if (movieJsonObj.has("poster_path")&& !movieJsonObj.isNull("poster_path")) {
+                    movieSearchDto.setPosterPath("https://image.tmdb.org/t/p/original" + movieJsonObj.getString("poster_path"));
+                }
+            } catch (Error error) {
+                movieSearchDto.setPosterPath("");
+            }
+            movieSearchDto.setTitle(movieJsonObj.getString("title"));
+            movieSearchList.add(movieSearchDto);
+        }
+        movieListDto.setMovieSearchList(movieSearchList);
+        return movieListDto;
+    }
+
     public void createMovieList(int userId) {
         Optional<UserEntity> retrievedUser = userRepository.findById(userId);
         if (retrievedUser.isPresent()) {
@@ -302,6 +344,25 @@ public class MovieService {
         movieInfoDto.setOverview(obj.getString("overview"));
         movieInfoDto.setPosterPath(obj.getString("poster_path"));
         movieInfoDto.setBackdropPath(obj.getString("backdrop_path"));
+        movieInfoDto.setTagline(obj.getString("tagline"));
+        movieInfoDto.setReleaseDate(obj.getString("release_date"));
+        JSONArray genreJSONData = obj.getJSONArray("genres");
+        ArrayList<String> genreList = new ArrayList<String>();
+        for (int i = 0; i < genreJSONData.length(); i++) {
+            JSONObject genreObj = genreJSONData.getJSONObject(i);
+            String genreName = genreObj.getString("name");
+            genreList.add(genreName);
+        }
+        movieInfoDto.setGenres(genreList);
+        JSONArray companiesJSONData = obj.getJSONArray("production_companies");
+        ArrayList<String> companyList = new ArrayList<String>();
+        for (int i = 0; i < companiesJSONData.length(); i++) {
+            JSONObject companyObj = companiesJSONData.getJSONObject(i);
+            String companyName = companyObj.getString("name");
+            companyList.add(companyName);
+        }
+        movieInfoDto.setProductionCompanies(companyList);
+        movieInfoDto.setRuntime(obj.getInt("runtime"));
         for (int i = 0; i < castJsonArray.length(); i++) {
             JSONObject castMemberJson = castJsonArray.getJSONObject(i);
             CastMemberDto castMemberDto = new CastMemberDto();
