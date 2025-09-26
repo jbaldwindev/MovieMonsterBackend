@@ -11,5 +11,6 @@ public class MovieCommentDto {
     private int likeCount;
     private Boolean currentUserLiked;
     private String username;
+    private String userIconPath;
     private String comment;
 }

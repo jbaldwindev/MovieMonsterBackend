@@ -160,6 +160,7 @@ public class MovieService {
 
             MovieRatingDto movieRatingDto = new MovieRatingDto();
             movieRatingDto.setMovieRating(retrievedRating.getRating());
+            movieRatingDto.setRatingId(retrievedRating.getId());
             return movieRatingDto;
         }
         return null;
@@ -215,6 +216,7 @@ public class MovieService {
                 newCommentDto.setCommentId(comment.getId());
                 newCommentDto.setComment(comment.getMovieComment());
                 newCommentDto.setLikeCount(comment.getCommentLikeList().size());
+                newCommentDto.setUserIconPath("http://localhost:8080/api/user/icon/" + comment.getUsername());
                 Boolean usernameFound = false;
                 for (CommentLike commentLike : comment.getCommentLikeList()) {
                     if (commentLike.getUsername().equals(commentRequestDto.getUsername())) {
