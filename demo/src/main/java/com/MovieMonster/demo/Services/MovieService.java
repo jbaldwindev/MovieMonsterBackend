@@ -411,6 +411,7 @@ public class MovieService {
         JSONObject obj = new JSONObject(jsonResponse);
         JSONArray results = obj.getJSONArray("results");
         MovieListDto movieListDto = new MovieListDto();
+        movieListDto.setTotalPages(obj.getInt("total_pages"));
         movieListDto.setMovieList(new ArrayList<Movie>());
         for (int i = 0; i < results.length(); i++) {
             Movie movie = new Movie();
