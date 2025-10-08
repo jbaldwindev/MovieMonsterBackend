@@ -20,7 +20,9 @@ public class Movie {
     private int id;
     private int movieId;
     private String originalTitle;
+    private String englishTitle;
     private String posterPath;
+    private String backdropPath;
     @Column(length = 3000)
     private String overview;
     @OneToMany(mappedBy = "movie")
