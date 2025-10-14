@@ -127,4 +127,7 @@ public class UserController {
     public ResponseEntity<String> GetBio(@PathVariable String username) {
         return userService.getBio(username);
     }
+
+    @GetMapping("/auth/user-exists/{username}")
+    public ResponseEntity<Boolean> IsUsernameTaken(@PathVariable String username) { return userService.isUsernameTaken(username); }
 }

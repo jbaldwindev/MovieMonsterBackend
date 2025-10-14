@@ -80,6 +80,11 @@ public class UserService {
         userRepository.save(receiver);
     }
 
+    public ResponseEntity<Boolean> isUsernameTaken(String username) {
+        boolean usernameTaken = userRepository.existsByUsername(username);
+        return new ResponseEntity<Boolean>(usernameTaken, HttpStatus.OK);
+    }
+
     public SearchListDto getUserSearch(String requestingUsername, String searchedUsername) {
         List<UserEntity> searchedUsers =  userRepository.findSimilarUsernames(searchedUsername);
         ArrayList<FriendStatusDto> connectionStatusList = new ArrayList<>();

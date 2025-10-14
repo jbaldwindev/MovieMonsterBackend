@@ -424,6 +424,11 @@ public class MovieService {
             } else {
                 movie.setPosterPath("none");
             }
+            if (!results.getJSONObject(i).isNull("backdrop_path")) {
+                movie.setBackdropPath(results.getJSONObject(i).getString("backdrop_path"));
+            } else {
+                movie.setBackdropPath("none");
+            }
             movie.setBackdropPath(results.getJSONObject(i).getString("backdrop_path"));
             movie.setOverview(results.getJSONObject(i).getString("overview"));
             ArrayList<Movie> movieList = movieListDto.getMovieList();
