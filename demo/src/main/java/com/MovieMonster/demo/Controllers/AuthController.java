@@ -30,7 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "https://movie-monster-frontend-2747d87c4c04.herokuapp.com/")
 @RequestMapping("/api/auth")
 public class AuthController {
 

@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "https://movie-monster-frontend-2747d87c4c04.herokuapp.com/")
 @RequestMapping("/api/dash")
 public class DashboardController {
 
