@@ -17,7 +17,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 @RestController
-@CrossOrigin(origins = "https://movie-monster-frontend-2747d87c4c04.herokuapp.com/")
+@CrossOrigin(origins = "https://movie-monster-frontend-2747d87c4c04.herokuapp.com")
 @RequestMapping("/api/user")
 public class UserController {
 
