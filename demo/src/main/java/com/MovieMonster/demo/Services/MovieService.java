@@ -407,7 +407,7 @@ public class MovieService {
                 .block()
                 .bodyToMono(String.class)
                 .block();
-
+        System.out.println("TMDB response: " + jsonResponse);
         JSONObject obj = new JSONObject(jsonResponse);
         JSONArray results = obj.getJSONArray("results");
         MovieListDto movieListDto = new MovieListDto();
