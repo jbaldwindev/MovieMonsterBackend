@@ -8,6 +8,7 @@ import com.MovieMonster.demo.Models.UserEntity;
 import com.MovieMonster.demo.Repositories.FriendRequestRepository;
 import com.MovieMonster.demo.Repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,13 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,11 +30,9 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class UserService {
@@ -35,6 +41,17 @@ public class UserService {
     private UserRepository userRepository;
     @Autowired
     private FriendRequestRepository friendRequestRepository;
+
+    @Value("${aws.s3.bucket}")
+    private String bucketName;
+
+    private final S3Client s3Client;
+    private final S3Presigner s3Presigner;
+
+    public UserService(S3Client s3Client, S3Presigner s3Presigner) {
+        this.s3Client = s3Client;
+        this.s3Presigner = s3Presigner;
+    }
 
     public void addFriend(String username, String friendUsername) {
         Optional<UserEntity> retrievedUser = userRepository.findByUsername(username);
@@ -82,7 +99,7 @@ public class UserService {
 
     public ResponseEntity<Boolean> isUsernameTaken(String username) {
         boolean usernameTaken = userRepository.existsByUsername(username);
-        return new ResponseEntity<Boolean>(usernameTaken, HttpStatus.OK);
+        return new ResponseEntity<>(usernameTaken, HttpStatus.OK);
     }
 
     public SearchListDto getUserSearch(String requestingUsername, String searchedUsername) {
@@ -234,40 +251,42 @@ public class UserService {
     }
 
     public ResponseEntity<String> UploadIcon(MultipartFile file, String username) {
-        try {
-            Optional<UserEntity> retrievedUser = userRepository.findByUsername(username);
-            if (retrievedUser.isPresent()) {
-                UserEntity user = retrievedUser.get();
-                String uploadDir = System.getProperty("user.home") + "/uploads";
-
-                Path dirPath = Paths.get(uploadDir);
-                if (!Files.exists(dirPath)) {
-                    Files.createDirectories(dirPath);
-                }
-
-                String filename = file.getOriginalFilename();
-                if (filename == null || filename.isEmpty() || filename.equals("blob")) {
-                    filename = "uploaded_" + System.currentTimeMillis() + ".png";
-                }
-
-                File destinationFile = dirPath.resolve(filename).toFile();
-                file.transferTo(destinationFile);
-                user.setIcon(filename);
-                userRepository.save(user);
-                return ResponseEntity.ok("Upload Completed: " + file.getOriginalFilename());
-            }
+        Optional<UserEntity> retrievedUser = userRepository.findByUsername(username);
+        if (retrievedUser.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User not found");
-        } catch (IOException e) {
+        }
+
+        UserEntity user = retrievedUser.get();
+
+        try {
+            String key = "profile-icons/" + username + "-" + UUID.randomUUID() + "-" + file.getOriginalFilename();
+
+            PutObjectRequest request = PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(key)
+                    .contentType(file.getContentType())
+                    .acl("public-read")
+                    .build();
+
+            s3Client.putObject(request, RequestBody.fromBytes(file.getBytes()));
+
+            user.setIcon(key);
+            userRepository.save(user);
+
+            return ResponseEntity.ok("S3 upload completed: " + key);
+
+        } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Upload failed: " + e.getMessage());
         }
     }
 
+
     public FriendListDto getFriendList(String username) {
         Optional<UserEntity> retrievedUser = userRepository.findByUsername(username);
         if (retrievedUser.isPresent()) {
-            ArrayList<FriendDto> friendList = new ArrayList<FriendDto>();
+            ArrayList<FriendDto> friendList = new ArrayList<>();
             UserEntity user = retrievedUser.get();
             for (UserEntity friend : user.getFriends()) {
                 FriendDto friendDto = new FriendDto();
@@ -283,36 +302,40 @@ public class UserService {
         }
     }
 
-    public ResponseEntity<Resource> getIcon(String username) {
+    public ResponseEntity<String> getIcon(String username) {
         Optional<UserEntity> retrievedUser = userRepository.findByUsername(username);
-        if (retrievedUser.isPresent()) {
-            UserEntity user = retrievedUser.get();
-            String uploadPath = System.getProperty("user.home") + "/uploads";
-            Path filePath;
-            if (user.getIcon() == null) {
-                filePath = Paths.get(uploadPath).resolve("default.jpg");
-            } else {
-                filePath = Paths.get(uploadPath).resolve(user.getIcon());
-            }
-            if (!Files.exists(filePath)) {
-                return ResponseEntity.notFound().build();
-            }
-            try {
-                String contentType = Files.probeContentType(filePath);
-                if (contentType == null) {
-                    contentType = "image/jpeg";
-                }
-                Resource resource = new UrlResource(filePath.toUri());
-                return ResponseEntity.ok()
-                        .contentType(MediaType.parseMediaType(contentType != null ? contentType : "image/jpeg"))
-                        .body(resource);
-            } catch (IOException e) {
-                System.err.println(e);
-                return ResponseEntity.notFound().build();
-            }
+        if (retrievedUser.isEmpty()) {
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.internalServerError().build();
+
+        UserEntity user = retrievedUser.get();
+
+        String key = (user.getIcon() == null)
+                ? "default.jpg"
+                : user.getIcon();
+
+        try {
+            // generate presigned URL valid for 10 minutes
+            GetObjectRequest getObjectReq = GetObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(key)
+                    .build();
+
+            GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                    .signatureDuration(Duration.ofMinutes(10))
+                    .getObjectRequest(getObjectReq)
+                    .build();
+
+            PresignedGetObjectRequest presignedObject = s3Presigner.presignGetObject(presignRequest);
+
+            return ResponseEntity.ok(presignedObject.url().toString());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
     }
+
 
     public ProfileInfoDto getProfileInfo(String username) {
         Optional<UserEntity> retrievedUser = userRepository.findByUsername(username);
@@ -342,21 +365,21 @@ public class UserService {
             UserEntity user = retrievedUser.get();
             List<Integer> favorites = user.getFavorites();
             if (favorites != null && favorites.size() >= 10) {
-                return new ResponseEntity<String>("User has reached max limit of favorites (10)", HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>("User has reached max limit of favorites (10)", HttpStatus.BAD_REQUEST);
             } else {
                 if (favorites == null) {
-                    favorites = new ArrayList<Integer>();
+                    favorites = new ArrayList<>();
                 }
                 if (favorites.contains(movieId)) {
-                    return new ResponseEntity<String>("Movie is already in favorites", HttpStatus.BAD_REQUEST);
+                    return new ResponseEntity<>("Movie is already in favorites", HttpStatus.BAD_REQUEST);
                 }
                 favorites.add(movieId);
                 user.setFavorites(favorites);
                 userRepository.save(user);
-                return new ResponseEntity<String>("Movie successfully added to favorites", HttpStatus.OK);
+                return new ResponseEntity<>("Movie successfully added to favorites", HttpStatus.OK);
             }
         } else {
-            return new ResponseEntity<String>("User not found", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("User not found", HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -366,20 +389,20 @@ public class UserService {
             UserEntity user = retrievedUser.get();
             List<Integer> favorites = user.getFavorites();
             if (favorites.size() < 1) {
-                return new ResponseEntity<String>("User has no favorites to remove", HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>("User has no favorites to remove", HttpStatus.BAD_REQUEST);
             } else {
                 for (Integer fav : favorites) {
                     if (fav.equals(movieId)) {
                         favorites.remove(fav);
                         user.setFavorites(favorites);
                         userRepository.save(user);
-                        return new ResponseEntity<String>("Successfully removed from favorites", HttpStatus.OK);
+                        return new ResponseEntity<>("Successfully removed from favorites", HttpStatus.OK);
                     }
                 }
-                return new ResponseEntity<String>("Movie not found in favorites list", HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>("Movie not found in favorites list", HttpStatus.BAD_REQUEST);
             }
         } else {
-            return new ResponseEntity<String>("User not found", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("User not found", HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -387,7 +410,7 @@ public class UserService {
         Optional<UserEntity> retrievedUser = userRepository.findByUsername(username);
         if (retrievedUser.isPresent()) {
             UserEntity user = retrievedUser.get();
-            return new ResponseEntity<List<Integer>>(user.getFavorites(), HttpStatus.OK);
+            return new ResponseEntity<>(user.getFavorites(), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -399,9 +422,9 @@ public class UserService {
             UserEntity user = retrievedUser.get();
             user.setBio(bioDto.getBio());
             userRepository.save(user);
-            return new ResponseEntity<String>("Bio successfully updated!", HttpStatus.OK);
+            return new ResponseEntity<>("Bio successfully updated!", HttpStatus.OK);
         } else {
-            return new ResponseEntity<String>("User not found", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("User not found", HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -413,13 +436,13 @@ public class UserService {
             if (user.getBio() == null || user.getBio().isEmpty()) {
                 user.setBio("User has not yet written their bio (but you can view their list to get a sense of what they enjoy!)");
                 userRepository.save(user);
-                return new ResponseEntity<String>(user.getBio(), HttpStatus.OK);
+                return new ResponseEntity<>(user.getBio(), HttpStatus.OK);
             }
 
             String bio = user.getBio();
-            return new ResponseEntity<String>(bio, HttpStatus.OK);
+            return new ResponseEntity<>(bio, HttpStatus.OK);
         } else {
-            return new ResponseEntity<String>("User not found!", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("User not found!", HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -430,7 +453,7 @@ public class UserService {
             List<Integer> favoritesList = user.getFavorites();
             int filmIndex = favoritesList.indexOf(movieId);
             if (filmIndex == 0 && rankDirection == RankingDirection.UP) {
-                return new ResponseEntity<String>("Film is already ranked #1 in your favorites", HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>("Film is already ranked #1 in your favorites", HttpStatus.BAD_REQUEST);
             }
 
             if (filmIndex >= 0) {
@@ -440,7 +463,7 @@ public class UserService {
                     favoritesList.set(upperFilmIndex, movieId);
                 } else if (rankDirection == RankingDirection.DOWN) {
                     if (filmIndex == favoritesList.size() - 1) {
-                        return new ResponseEntity<String>("Film is already ranked last in your favorites list", HttpStatus.BAD_REQUEST);
+                        return new ResponseEntity<>("Film is already ranked last in your favorites list", HttpStatus.BAD_REQUEST);
                     }
                     int lowerFilmIndex = filmIndex + 1;
                     favoritesList.set(filmIndex, favoritesList.get(lowerFilmIndex));
@@ -448,12 +471,12 @@ public class UserService {
                 }
                 user.setFavorites(favoritesList);
                 userRepository.save(user);
-                return new ResponseEntity<String>("Favorites ranking successfully changed", HttpStatus.OK);
+                return new ResponseEntity<>("Favorites ranking successfully changed", HttpStatus.OK);
             } else {
-                return new ResponseEntity<String>("Movie not currently in favorites list", HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>("Movie not currently in favorites list", HttpStatus.BAD_REQUEST);
             }
         } else {
-            return new ResponseEntity<String>("User not found", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("User not found", HttpStatus.BAD_REQUEST);
         }
     }
 }

@@ -27,19 +27,19 @@ public class UserController {
     @PostMapping("/add-friend/{username}")
     public ResponseEntity<String> AddFriend(@PathVariable String username, @RequestParam("friend") String friendUsername) {
         userService.addFriend(username, friendUsername);
-        return new ResponseEntity<String>("Friend added!", HttpStatus.OK);
+        return new ResponseEntity<>("Friend added!", HttpStatus.OK);
     }
 
     @PostMapping("/request-response")
     public ResponseEntity<String> RespondRequest(@RequestBody RequestResponseDto requestResponseDto) {
         userService.handleRequestResponse(requestResponseDto);
-        return new ResponseEntity<String>("Friend request response handled!", HttpStatus.OK);
+        return new ResponseEntity<>("Friend request response handled!", HttpStatus.OK);
     }
 
     @PostMapping("/send-request")
     public ResponseEntity<String> SendRequest(@RequestBody SendRequestDto sendRequestDto) {
         userService.sendRequest(sendRequestDto.getSenderUsername(), sendRequestDto.getReceiverUsername());
-        return new ResponseEntity<String>("Request sent!", HttpStatus.OK);
+        return new ResponseEntity<>("Request sent!", HttpStatus.OK);
     }
 
     @GetMapping("/received-requests/{username}")
@@ -61,13 +61,13 @@ public class UserController {
     public ResponseEntity<String> deleteFriendRequest(@PathVariable String sender,
                                                       @PathVariable String receiver) {
         userService.deleteFriendRequest(sender, receiver);
-        return new ResponseEntity<String>("Request successfully deleted", HttpStatus.OK);
+        return new ResponseEntity<>("Request successfully deleted", HttpStatus.OK);
     }
 
     @DeleteMapping("{user1}/friends/{user2}")
     public ResponseEntity<String> RemoveFriend(@PathVariable String user1, @PathVariable String user2) {
         userService.removeFriend(user1, user2);
-        return new ResponseEntity<String>("Friend successfully removed!", HttpStatus.OK);
+        return new ResponseEntity<>("Friend successfully removed!", HttpStatus.OK);
     }
 
     @GetMapping("/get-friends/{username}")
@@ -86,9 +86,10 @@ public class UserController {
     }
 
     @GetMapping("/icon/{username}")
-    public ResponseEntity<Resource> GetIcon(@PathVariable String username) {
+    public ResponseEntity<String> GetIcon(@PathVariable String username) {
         return userService.getIcon(username);
     }
+
     @GetMapping("/profile/{username}")
     public ProfileInfoDto GetProfileInfo(@PathVariable String username) {
         return userService.getProfileInfo(username);
