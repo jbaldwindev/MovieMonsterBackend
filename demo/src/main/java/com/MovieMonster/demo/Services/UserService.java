@@ -265,7 +265,6 @@ public class UserService {
                     .bucket(bucketName)
                     .key(key)
                     .contentType(file.getContentType())
-                    .acl("public-read")
                     .build();
 
             s3Client.putObject(request, RequestBody.fromBytes(file.getBytes()));
