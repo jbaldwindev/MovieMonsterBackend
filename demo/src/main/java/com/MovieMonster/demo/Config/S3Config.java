@@ -35,7 +35,11 @@ public class S3Config {
     public S3Presigner s3Presigner() {
         return S3Presigner.builder()
                 .region(Region.US_EAST_1)
-                .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+                .credentialsProvider(
+                        StaticCredentialsProvider.create(
+                                AwsBasicCredentials.create(accessKey, secretKey)
+                        )
+                )
                 .build();
     }
 }

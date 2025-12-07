@@ -383,7 +383,6 @@ public class MovieService {
     public MovieListDto fillDash(int page, DashDisplay dashDisplay) {
         String pageNum = String.valueOf(page);
         String fullUri = "";
-        System.out.println("TMDB key: " + tmdbKey);
         switch(dashDisplay) {
             case POPULAR:
                 fullUri = "/3/discover/movie?include_adult=false&include_video=false&language=en-US&page="
@@ -408,7 +407,6 @@ public class MovieService {
                 .block()
                 .bodyToMono(String.class)
                 .block();
-        System.out.println("TMDB response: " + jsonResponse);
         JSONObject obj = new JSONObject(jsonResponse);
         JSONArray results = obj.getJSONArray("results");
         MovieListDto movieListDto = new MovieListDto();
