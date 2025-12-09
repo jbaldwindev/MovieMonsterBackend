@@ -110,7 +110,7 @@ public class UserService {
                 if (requestingUsername.equals(user.getUsername())) continue;
                 FriendStatusDto friendStatusDto = getFriendStatus(requestingUsername, user.getUsername());
                 friendStatusDto.setRequestedUsername(user.getUsername());
-                friendStatusDto.setSearchedUserIcon("http://localhost:8080/api/user/icon/" + user.getUsername());
+                friendStatusDto.setSearchedUserIcon(user.getIcon());
                 connectionStatusList.add(friendStatusDto);
             }
         }
@@ -198,7 +198,7 @@ public class UserService {
             for (FriendRequest friendRequest : user.getReceivedRequests()) {
                 FriendRequestDto friendRequestDto = new FriendRequestDto();
                 friendRequestDto.setId(friendRequest.getId());
-                friendRequestDto.setSenderIcon("http://localhost:8080/api/user/icon/" + friendRequest.getSender().getUsername());
+                friendRequestDto.setSenderIcon(friendRequest.getSender().getIcon());
                 friendRequestDto.setReceiver(friendRequest.getReceiver().getUsername());
                 friendRequestDto.setSender(friendRequest.getSender().getUsername());
                 friendRequestDto.setRequestStatus(friendRequest.getRequestStatus());
@@ -237,7 +237,7 @@ public class UserService {
                 FriendRequestDto friendRequestDto = new FriendRequestDto();
                 friendRequestDto.setId(friendRequest.getId());
                 friendRequestDto.setReceiver(friendRequest.getReceiver().getUsername());
-                friendRequestDto.setReceiverIcon("http://localhost:8080/api/user/icon/" + friendRequest.getReceiver().getUsername());
+                friendRequestDto.setReceiverIcon(friendRequest.getReceiver().getIcon());
                 friendRequestDto.setSender(friendRequest.getSender().getUsername());
                 friendRequestDto.setRequestStatus(friendRequest.getRequestStatus());
                 friendRequestDto.setLocalDateTime(friendRequest.getLocalDateTime());
@@ -290,7 +290,7 @@ public class UserService {
             for (UserEntity friend : user.getFriends()) {
                 FriendDto friendDto = new FriendDto();
                 friendDto.setUsername(friend.getUsername());
-                friendDto.setIconPath("http://localhost:8080/api/user/icon/" + friend.getUsername());
+                friendDto.setIconPath(friend.getIcon());
                 friendList.add(friendDto);
             }
             FriendListDto friendListDto = new FriendListDto();
