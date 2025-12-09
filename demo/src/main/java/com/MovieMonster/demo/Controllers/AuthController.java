@@ -69,6 +69,7 @@ public class AuthController {
         Role roles = roleRepository.findByName("USER").get();
         user.setRoles(Collections.singletonList(roles));
         user.setJoinDate(LocalDateTime.now());
+        user.setIcon("default.jpg");
         userRepository.save(user);
         movieService.createMovieList(user.getId());
         return new ResponseEntity<>("User has been registered", HttpStatus.OK);
