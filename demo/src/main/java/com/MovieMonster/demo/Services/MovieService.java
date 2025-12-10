@@ -15,20 +15,34 @@ import java.util.*;
 @Service
 public class MovieService {
     private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(3);
-    @Autowired
     private WebClient apiClient;
-    @Autowired
     private UserRepository userRepository;
-    @Autowired
     private MovieListRepository movieListRepository;
-    @Autowired
     private MovieRatingRepository movieRatingRepository;
-    @Autowired
     private MovieRepository movieRepository;
-    @Autowired
     private MovieCommentRepository movieCommentRepository;
-    @Autowired
     private CommentLikeRepository commentLikeRepository;
+    private UserService userService;
+
+    public MovieService(
+            UserService userService,
+            CommentLikeRepository commentLikeRepository,
+            MovieCommentRepository movieCommentRepository,
+            MovieRepository movieRepository,
+            MovieRatingRepository movieRatingRepository,
+            MovieListRepository movieListRepository,
+            UserRepository userRepository,
+            WebClient apiClient
+    ) {
+        this.userService = userService;
+        this.commentLikeRepository = commentLikeRepository;
+        this.movieCommentRepository = movieCommentRepository;
+        this.movieRepository = movieRepository;
+        this.movieRatingRepository = movieRatingRepository;
+        this.movieListRepository = movieListRepository;
+        this.userRepository = userRepository;
+        this.apiClient = apiClient;
+    }
 
     @Value("${tmdb.key}")
     private String tmdbKey;
@@ -198,10 +212,6 @@ public class MovieService {
         }
     }
 
-    //TODO Update this to take a parameter for page, have it return list of 5 comments at a time.
-    //TODO add a username param to the request
-    //TODO update the request to take in a json object with the movies id as well as the user's username
-    //TODO update the frontend to use the new version of the request instead
     public CommentListDto getCommentList(CommentRequestDto commentRequestDto) {
         Optional<Movie> fetchedMovie = movieRepository.findByMovieId(commentRequestDto.getMovieId());
         if (fetchedMovie.isPresent()) {
@@ -216,7 +226,7 @@ public class MovieService {
                 newCommentDto.setCommentId(comment.getId());
                 newCommentDto.setComment(comment.getMovieComment());
                 newCommentDto.setLikeCount(comment.getCommentLikeList().size());
-                newCommentDto.setUserIconPath("http://localhost:8080/api/user/icon/" + comment.getUsername());
+                newCommentDto.setUserIconPath(userService.getIcon(comment.getUsername()).getBody());
                 Boolean usernameFound = false;
                 for (CommentLike commentLike : comment.getCommentLikeList()) {
                     if (commentLike.getUsername().equals(commentRequestDto.getUsername())) {
