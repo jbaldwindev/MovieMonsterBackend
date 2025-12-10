@@ -110,7 +110,7 @@ public class UserService {
                 if (requestingUsername.equals(user.getUsername())) continue;
                 FriendStatusDto friendStatusDto = getFriendStatus(requestingUsername, user.getUsername());
                 friendStatusDto.setRequestedUsername(user.getUsername());
-                friendStatusDto.setSearchedUserIcon(user.getIcon());
+                friendStatusDto.setSearchedUserIcon(getIcon(user.getUsername()).getBody());
                 connectionStatusList.add(friendStatusDto);
             }
         }
@@ -198,7 +198,7 @@ public class UserService {
             for (FriendRequest friendRequest : user.getReceivedRequests()) {
                 FriendRequestDto friendRequestDto = new FriendRequestDto();
                 friendRequestDto.setId(friendRequest.getId());
-                friendRequestDto.setSenderIcon(friendRequest.getSender().getIcon());
+                friendRequestDto.setSenderIcon(getIcon(friendRequest.getSender().getUsername()).getBody());
                 friendRequestDto.setReceiver(friendRequest.getReceiver().getUsername());
                 friendRequestDto.setSender(friendRequest.getSender().getUsername());
                 friendRequestDto.setRequestStatus(friendRequest.getRequestStatus());
@@ -237,7 +237,7 @@ public class UserService {
                 FriendRequestDto friendRequestDto = new FriendRequestDto();
                 friendRequestDto.setId(friendRequest.getId());
                 friendRequestDto.setReceiver(friendRequest.getReceiver().getUsername());
-                friendRequestDto.setReceiverIcon(friendRequest.getReceiver().getIcon());
+                friendRequestDto.setReceiverIcon(getIcon(friendRequest.getReceiver().getUsername()).getBody());
                 friendRequestDto.setSender(friendRequest.getSender().getUsername());
                 friendRequestDto.setRequestStatus(friendRequest.getRequestStatus());
                 friendRequestDto.setLocalDateTime(friendRequest.getLocalDateTime());
@@ -290,7 +290,7 @@ public class UserService {
             for (UserEntity friend : user.getFriends()) {
                 FriendDto friendDto = new FriendDto();
                 friendDto.setUsername(friend.getUsername());
-                friendDto.setIconPath(friend.getIcon());
+                friendDto.setIconPath(getIcon(friend.getUsername()).getBody());
                 friendList.add(friendDto);
             }
             FriendListDto friendListDto = new FriendListDto();
