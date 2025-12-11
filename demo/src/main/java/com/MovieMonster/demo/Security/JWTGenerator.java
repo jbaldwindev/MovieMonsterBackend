@@ -40,12 +40,16 @@ public class JWTGenerator {
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parser().setSigningKey(securityConstants.getJwtSecret()).build().parseSignedClaims(token);
+            Jwts.parser()
+                    .setSigningKey(securityConstants.getJwtSecret())
+                    .build()
+                    .parseSignedClaims(token);
             return true;
         } catch (Exception ex) {
-            throw new AuthenticationCredentialsNotFoundException("JWT was expired or incorrect");
+            return false;
         }
     }
+
 
     public String generateTokenFromUsername(String username, long expirationMs) {
         Date now = new Date();
