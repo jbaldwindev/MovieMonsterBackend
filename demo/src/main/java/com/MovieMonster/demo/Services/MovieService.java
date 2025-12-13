@@ -251,24 +251,17 @@ public class MovieService {
         if (fetchedMovieComment.isPresent()) {
             MovieComment movieComment = fetchedMovieComment.get();
             List<CommentLike> commentLikeList = movieComment.getCommentLikeList();
-            //TODO instead of just returning here, remove this code, and have a separate
-            //dislike comment function delete the comment like
             for (CommentLike cLike : commentLikeList) {
                 if (cLike.getUsername().equals(commentLikeDto.getUsername())) {
                     return;
                 }
             }
             CommentLike commentLike = new CommentLike();
-            //create a CommentLike object, set the username and comment
             commentLike.setUsername(commentLikeDto.getUsername());
             commentLike.setComment(movieComment);
-            //save the CommentLike object in the repository
             commentLikeRepository.save(commentLike);
-            //add the CommentLike to the list of CommentLikes in the comment object
-
             commentLikeList.add(commentLike);
             movieComment.setCommentLikeList(commentLikeList);
-            //save the comment in the comment repository
             movieCommentRepository.save(movieComment);
         }
     }
@@ -281,8 +274,6 @@ public class MovieService {
             for (int i = 0; i < commentLikeList.size(); i++) {
                 if (commentLikeList.get(i).getUsername().equals(commentLikeDto.getUsername())) {
                     CommentLike commentLike = commentLikeList.get(i);
-                    System.out.println("Comment like username: " + commentLike.getUsername());
-                    System.out.println("Comment Like id: " + commentLike.getId());
                     commentLikeRepository.deleteById(commentLike.getId());
                     commentLikeList.remove(i);
                     i--;
@@ -299,21 +290,16 @@ public class MovieService {
         Optional<Movie> fetchedMovie = movieRepository.findByMovieId(movieId);
         if (fetchedMovie.isPresent()) {
             Movie movie = fetchedMovie.get();
-            //create the comment
             MovieComment movieComment = new MovieComment();
             movieComment.setMovie(movie);
             movieComment.setMovieComment(movieCommentDto.getComment());
             movieComment.setUsername(movieCommentDto.getUsername());
-            //save to the comment respository
             movieCommentRepository.save(movieComment);
-            //add the comment to the movie's comment list
             List<MovieComment> movieCommentList = movie.getMovieCommentList();
             movieCommentList.add(movieComment);
             movie.setMovieCommentList(movieCommentList);
-            //save the movie in the movie repository
             movieRepository.save(movie);
         } else {
-            //create the movie
             MovieInfoDto movieInfoDto = getMovieInfo(movieCommentDto.getMovieId());
             Movie movie = new Movie();
             movie.setMovieId(movieId);
@@ -321,18 +307,14 @@ public class MovieService {
             movie.setOverview(movieInfoDto.getOverview());
             movie.setMovieCommentList(new ArrayList<MovieComment>());
             movie.setPosterPath(movieInfoDto.getPosterPath());
-            //create the comment
             MovieComment movieComment = new MovieComment();
             movieComment.setMovieComment(movieCommentDto.getComment());
             movieComment.setUsername(movieCommentDto.getUsername());
             movieComment.setMovie(movie);
-            //add the comment to the movies comment list
             List<MovieComment> movieCommentList = new ArrayList<MovieComment>();
             movieCommentList.add(movieComment);
             movie.setMovieCommentList(movieCommentList);
-            //save the movie to the movie repository
             movieRepository.save(movie);
-            //save the comment to the comment repository
             movieCommentRepository.save(movieComment);
         }
 
@@ -438,8 +420,6 @@ public class MovieService {
             } else {
                 movie.setBackdropPath("none");
             }
-            movie.setBackdropPath(results.getJSONObject(i).getString("backdrop_path"));
-            movie.setOverview(results.getJSONObject(i).getString("overview"));
             ArrayList<Movie> movieList = movieListDto.getMovieList();
             movieList.add(movie);
             movieListDto.setMovieList(movieList);
