@@ -94,6 +94,7 @@ public class MovieController {
         try {
             movieRatingDto = movieService.checkRating(username, movieId);
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             movieRatingDto = null;
         }
         if (movieRatingDto != null) {
