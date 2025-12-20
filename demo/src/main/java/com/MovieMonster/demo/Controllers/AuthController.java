@@ -1,10 +1,7 @@
 package com.MovieMonster.demo.Controllers;
 
-import com.MovieMonster.demo.Dto.AuthResponseDto;
 import com.MovieMonster.demo.Dto.LoginDto;
 import com.MovieMonster.demo.Dto.RegisterDto;
-import com.MovieMonster.demo.Models.MovieList;
-import com.MovieMonster.demo.Models.MovieRating;
 import com.MovieMonster.demo.Models.UserEntity;
 import com.MovieMonster.demo.Models.Role;
 import com.MovieMonster.demo.Repositories.MovieListRepository;
@@ -14,7 +11,9 @@ import com.MovieMonster.demo.Repositories.UserRepository;
 import com.MovieMonster.demo.Security.JWTGenerator;
 import com.MovieMonster.demo.Services.MovieService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,15 +21,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@CrossOrigin(origins = "https://moviemonster.xyz")
+@CrossOrigin(origins = "https://moviemonster.xyz", allowCredentials = "true")
 @RequestMapping("/api/auth")
 public class AuthController {
 
@@ -77,30 +73,92 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDto loginDto) {
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword()));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String accessToken = jwtGenerator.generateToken(authentication, 900000);
-        String refreshToken = jwtGenerator.generateToken(authentication, 604800000);
-        Map<String, String> tokens = new HashMap<>();
-        tokens.put("accessToken", accessToken);
-        tokens.put("refreshToken", refreshToken);
+                new UsernamePasswordAuthenticationToken(
+                        loginDto.getUsername(),
+                        loginDto.getPassword()
+                )
+        );
 
-        return ResponseEntity.ok(tokens);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        String accessToken = jwtGenerator.generateToken(authentication, 900000);       // 15 min
+        String refreshToken = jwtGenerator.generateToken(authentication, 604800000);   // 7 days
+
+        ResponseCookie accessCookie = ResponseCookie.from("accessToken", accessToken)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(900)
+                .build();
+
+        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .path("/api/auth/refresh")
+                .maxAge(604800)
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .body(Map.of("username", loginDto.getUsername()));
     }
+
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refreshToken(@RequestBody Map<String, String> request) {
-        String refreshToken = request.get("refreshToken");
-
-        if (jwtGenerator.validateToken(refreshToken)) {
-            String username = jwtGenerator.getUsernameFromJWT(refreshToken);
-            String newAccessToken = jwtGenerator.generateTokenFromUsername(username, 900000);
-            Map<String, String> tokens = new HashMap<>();
-            tokens.put("accessToken", newAccessToken);
-            return ResponseEntity.ok(tokens);
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid refresh token");
+    public ResponseEntity<?> refreshToken(
+            @CookieValue(name = "refreshToken", required = false) String refreshToken
+    ) {
+        if (refreshToken == null || !jwtGenerator.validateToken(refreshToken)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+
+        String username = jwtGenerator.getUsernameFromJWT(refreshToken);
+        String newAccessToken = jwtGenerator.generateTokenFromUsername(username, 900000);
+
+        ResponseCookie accessCookie = ResponseCookie.from("accessToken", newAccessToken)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(900)
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+                .build();
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout() {
+
+        ResponseCookie deleteAccess = ResponseCookie.from("accessToken", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0)
+                .build();
+
+        ResponseCookie deleteRefresh = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/api/auth/refresh")
+                .maxAge(0)
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, deleteAccess.toString())
+                .header(HttpHeaders.SET_COOKIE, deleteRefresh.toString())
+                .build();
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> me(Authentication authentication) {
+        if (authentication == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.ok(authentication.getName());
+    }
 }
