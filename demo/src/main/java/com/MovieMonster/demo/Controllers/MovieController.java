@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@CrossOrigin(origins = "https://moviemonster.xyz", allowCredentials = "true")
 @RequestMapping("/api/movie")
 public class MovieController {
     @Autowired

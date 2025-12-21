@@ -9,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@CrossOrigin(origins = "https://moviemonster.xyz", allowCredentials = "true")
 @RequestMapping("/api/dash")
 public class DashboardController {
 

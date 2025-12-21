@@ -26,7 +26,6 @@ import java.util.Collections;
 import java.util.Map;
 
 @RestController
-@CrossOrigin(origins = "https://moviemonster.xyz", allowCredentials = "true")
 @RequestMapping("/api/auth")
 public class AuthController {
 
