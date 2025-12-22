@@ -39,7 +39,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("https://www.moviemonster.xyz"));
+        config.setAllowedOrigins(List.of(
+                "https://www.moviemonster.xyz",
+                "https://moviemonster.xyz")
+        );
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of(
                 "Authorization",

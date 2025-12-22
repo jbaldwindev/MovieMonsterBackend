@@ -136,6 +136,7 @@ public class AuthController {
         ResponseCookie deleteAccess = ResponseCookie.from("accessToken", "")
                 .httpOnly(true)
                 .secure(true)
+                .sameSite("None")
                 .path("/")
                 .maxAge(0)
                 .build();
@@ -143,9 +144,11 @@ public class AuthController {
         ResponseCookie deleteRefresh = ResponseCookie.from("refreshToken", "")
                 .httpOnly(true)
                 .secure(true)
+                .sameSite("None")
                 .path("/api/auth/refresh")
                 .maxAge(0)
                 .build();
+
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, deleteAccess.toString())
