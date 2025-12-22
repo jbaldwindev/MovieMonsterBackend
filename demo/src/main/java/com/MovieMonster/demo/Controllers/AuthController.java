@@ -157,11 +157,10 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<?> me() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
+    public ResponseEntity<?> me(Authentication authentication) {
+        if (authentication == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        return ResponseEntity.ok(auth.getName());
+        return ResponseEntity.ok(authentication.getName());
     }
 }
