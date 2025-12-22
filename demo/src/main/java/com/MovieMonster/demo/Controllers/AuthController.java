@@ -95,7 +95,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
-                .path("/api/auth/refresh")
+                .path("/")
                 .maxAge(604800)
                 .build();
 
@@ -145,7 +145,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
-                .path("/api/auth/refresh")
+                .path("/")
                 .maxAge(0)
                 .build();
 
