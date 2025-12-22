@@ -158,6 +158,7 @@ public class AuthController {
 
     @GetMapping("/me")
     public ResponseEntity<?> me(Authentication authentication) {
+        System.out.println("AUTH /me called, auth = " + authentication);
         if (authentication == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
