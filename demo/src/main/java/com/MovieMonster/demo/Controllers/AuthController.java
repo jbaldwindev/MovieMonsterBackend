@@ -87,6 +87,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("Lax")
+                .domain(".moviemonster.xyz")
                 .path("/")
                 .maxAge(900)
                 .build();
@@ -95,6 +96,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("Lax")
+                .domain(".moviemonster.xyz")
                 .path("/")
                 .maxAge(604800)
                 .build();
@@ -121,6 +123,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("Lax")
+                .domain(".moviemonster.xyz")
                 .path("/")
                 .maxAge(900)
                 .build();
@@ -137,6 +140,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("Lax")
+                .domain(".moviemonster.xyz")
                 .path("/")
                 .maxAge(0)
                 .build();
@@ -145,6 +149,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("Lax")
+                .domain(".moviemonster.xyz")
                 .path("/")
                 .maxAge(0)
                 .build();
