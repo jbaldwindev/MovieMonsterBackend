@@ -2,8 +2,8 @@ package com.MovieMonster.demo.Controllers;
 
 import com.MovieMonster.demo.Dto.LoginDto;
 import com.MovieMonster.demo.Dto.RegisterDto;
-import com.MovieMonster.demo.Models.UserEntity;
 import com.MovieMonster.demo.Models.Role;
+import com.MovieMonster.demo.Models.UserEntity;
 import com.MovieMonster.demo.Repositories.MovieListRepository;
 import com.MovieMonster.demo.Repositories.MovieRatingRepository;
 import com.MovieMonster.demo.Repositories.RoleRepository;
@@ -11,6 +11,7 @@ import com.MovieMonster.demo.Repositories.UserRepository;
 import com.MovieMonster.demo.Security.JWTGenerator;
 import com.MovieMonster.demo.Services.MovieService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -20,7 +21,13 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Map;
@@ -40,6 +47,16 @@ public class AuthController {
     private RoleRepository roleRepository;
     private PasswordEncoder passwordEncoder;
     private JWTGenerator jwtGenerator;
+
+    @Value("${app.cookie.secure}")
+    private boolean cookieSecure;
+
+    @Value("${app.cookie.same-site:Lax}")
+    private String cookieSameSite;
+
+    @Value("${app.cookie.domain:}")
+    private String cookieDomain;
+
     @Autowired
     public AuthController(UserRepository userRepository, AuthenticationManager authenticationManager,
                           RoleRepository roleRepository, PasswordEncoder passwordEncoder,
@@ -80,33 +97,17 @@ public class AuthController {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        String accessToken = jwtGenerator.generateToken(authentication, 900000);       // 15 min
-        String refreshToken = jwtGenerator.generateToken(authentication, 604800000);   // 7 days
+        String accessToken = jwtGenerator.generateToken(authentication, 900000);
+        String refreshToken = jwtGenerator.generateToken(authentication, 604800000);
 
-        ResponseCookie accessCookie = ResponseCookie.from("accessToken", accessToken)
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("Lax")
-                .domain(".moviemonster.xyz")
-                .path("/")
-                .maxAge(900)
-                .build();
-
-        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("Lax")
-                .domain(".moviemonster.xyz")
-                .path("/")
-                .maxAge(604800)
-                .build();
+        ResponseCookie accessCookie = buildCookie("accessToken", accessToken, 900);
+        ResponseCookie refreshCookie = buildCookie("refreshToken", refreshToken, 604800);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
                 .body(Map.of("username", loginDto.getUsername()));
     }
-
 
     @PostMapping("/refresh")
     public ResponseEntity<?> refreshToken(
@@ -119,14 +120,7 @@ public class AuthController {
         String username = jwtGenerator.getUsernameFromJWT(refreshToken);
         String newAccessToken = jwtGenerator.generateTokenFromUsername(username, 900000);
 
-        ResponseCookie accessCookie = ResponseCookie.from("accessToken", newAccessToken)
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("Lax")
-                .domain(".moviemonster.xyz")
-                .path("/")
-                .maxAge(900)
-                .build();
+        ResponseCookie accessCookie = buildCookie("accessToken", newAccessToken, 900);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
@@ -135,25 +129,8 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout() {
-
-        ResponseCookie deleteAccess = ResponseCookie.from("accessToken", "")
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("Lax")
-                .domain(".moviemonster.xyz")
-                .path("/")
-                .maxAge(0)
-                .build();
-
-        ResponseCookie deleteRefresh = ResponseCookie.from("refreshToken", "")
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("Lax")
-                .domain(".moviemonster.xyz")
-                .path("/")
-                .maxAge(0)
-                .build();
-
+        ResponseCookie deleteAccess = buildCookie("accessToken", "", 0);
+        ResponseCookie deleteRefresh = buildCookie("refreshToken", "", 0);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, deleteAccess.toString())
@@ -168,5 +145,20 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         return ResponseEntity.ok(authentication.getName());
+    }
+
+    private ResponseCookie buildCookie(String name, String value, long maxAgeSeconds) {
+        ResponseCookie.ResponseCookieBuilder cookieBuilder = ResponseCookie.from(name, value)
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .sameSite(cookieSameSite)
+                .path("/")
+                .maxAge(maxAgeSeconds);
+
+        if (!cookieDomain.isBlank()) {
+            cookieBuilder.domain(cookieDomain);
+        }
+
+        return cookieBuilder.build();
     }
 }
