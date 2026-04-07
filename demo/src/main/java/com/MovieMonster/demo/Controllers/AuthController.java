@@ -4,8 +4,6 @@ import com.MovieMonster.demo.Dto.LoginDto;
 import com.MovieMonster.demo.Dto.RegisterDto;
 import com.MovieMonster.demo.Models.Role;
 import com.MovieMonster.demo.Models.UserEntity;
-import com.MovieMonster.demo.Repositories.MovieListRepository;
-import com.MovieMonster.demo.Repositories.MovieRatingRepository;
 import com.MovieMonster.demo.Repositories.RoleRepository;
 import com.MovieMonster.demo.Repositories.UserRepository;
 import com.MovieMonster.demo.Security.JWTGenerator;
@@ -36,17 +34,13 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    private UserRepository userRepository;
-    @Autowired
-    private MovieListRepository movieListRepository;
-    @Autowired
-    private MovieRatingRepository movieRatingRepository;
+    private final UserRepository userRepository;
     @Autowired
     private MovieService movieService;
-    private AuthenticationManager authenticationManager;
-    private RoleRepository roleRepository;
-    private PasswordEncoder passwordEncoder;
-    private JWTGenerator jwtGenerator;
+    private final AuthenticationManager authenticationManager;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JWTGenerator jwtGenerator;
 
     @Value("${app.cookie.secure}")
     private boolean cookieSecure;
