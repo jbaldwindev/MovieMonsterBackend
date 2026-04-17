@@ -8,6 +8,7 @@ import com.MovieMonster.demo.Repositories.RoleRepository;
 import com.MovieMonster.demo.Repositories.UserRepository;
 import com.MovieMonster.demo.Security.JWTGenerator;
 import com.MovieMonster.demo.Services.MovieService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -81,7 +82,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginDto loginDto) {
+    public ResponseEntity<?> login(@RequestBody LoginDto loginDto, HttpServletRequest request) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginDto.getUsername(),
@@ -94,8 +95,8 @@ public class AuthController {
         String accessToken = jwtGenerator.generateToken(authentication, 900000);
         String refreshToken = jwtGenerator.generateToken(authentication, 604800000);
 
-        ResponseCookie accessCookie = buildCookie("accessToken", accessToken, 900);
-        ResponseCookie refreshCookie = buildCookie("refreshToken", refreshToken, 604800);
+        ResponseCookie accessCookie = buildCookie("accessToken", accessToken, 900, request);
+        ResponseCookie refreshCookie = buildCookie("refreshToken", refreshToken, 604800, request);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
@@ -105,7 +106,8 @@ public class AuthController {
 
     @PostMapping("/refresh")
     public ResponseEntity<?> refreshToken(
-            @CookieValue(name = "refreshToken", required = false) String refreshToken
+            @CookieValue(name = "refreshToken", required = false) String refreshToken,
+            HttpServletRequest request
     ) {
         if (refreshToken == null || !jwtGenerator.validateToken(refreshToken)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -114,7 +116,7 @@ public class AuthController {
         String username = jwtGenerator.getUsernameFromJWT(refreshToken);
         String newAccessToken = jwtGenerator.generateTokenFromUsername(username, 900000);
 
-        ResponseCookie accessCookie = buildCookie("accessToken", newAccessToken, 900);
+        ResponseCookie accessCookie = buildCookie("accessToken", newAccessToken, 900, request);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
@@ -122,9 +124,9 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout() {
-        ResponseCookie deleteAccess = buildCookie("accessToken", "", 0);
-        ResponseCookie deleteRefresh = buildCookie("refreshToken", "", 0);
+    public ResponseEntity<?> logout(HttpServletRequest request) {
+        ResponseCookie deleteAccess = buildCookie("accessToken", "", 0, request);
+        ResponseCookie deleteRefresh = buildCookie("refreshToken", "", 0, request);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, deleteAccess.toString())
@@ -141,10 +143,10 @@ public class AuthController {
         return ResponseEntity.ok(authentication.getName());
     }
 
-    private ResponseCookie buildCookie(String name, String value, long maxAgeSeconds) {
+    private ResponseCookie buildCookie(String name, String value, long maxAgeSeconds, HttpServletRequest request) {
         ResponseCookie.ResponseCookieBuilder cookieBuilder = ResponseCookie.from(name, value)
                 .httpOnly(true)
-                .secure(cookieSecure)
+                .secure(cookieSecure || request.isSecure())
                 .sameSite(cookieSameSite)
                 .path("/")
                 .maxAge(maxAgeSeconds);

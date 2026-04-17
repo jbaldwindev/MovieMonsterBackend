@@ -2,9 +2,7 @@ package com.MovieMonster.demo.Security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
@@ -25,13 +23,13 @@ public class JWTGenerator {
                 .setSubject(username)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(SignatureAlgorithm.HS512, securityConstants.getJwtSecret())
+                .signWith(securityConstants.getJwtSigningKey())
                 .compact();
     }
 
     public String getUsernameFromJWT(String token) {
         Claims claims = Jwts.parser()
-                .setSigningKey(securityConstants.getJwtSecret())
+                .setSigningKey(securityConstants.getJwtSigningKey())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
@@ -41,7 +39,7 @@ public class JWTGenerator {
     public boolean validateToken(String token) {
         try {
             Jwts.parser()
-                    .setSigningKey(securityConstants.getJwtSecret())
+                    .setSigningKey(securityConstants.getJwtSigningKey())
                     .build()
                     .parseSignedClaims(token);
             return true;
@@ -59,7 +57,7 @@ public class JWTGenerator {
                 .setSubject(username)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(SignatureAlgorithm.HS512, securityConstants.getJwtSecret())
+                .signWith(securityConstants.getJwtSigningKey())
                 .compact();
     }
 }
