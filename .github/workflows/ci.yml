@@ -30,6 +30,15 @@ jobs:
       - name: Run unit tests
         run: ./mvnw test
 
+      - name: Upload unit test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-reports
+          path: |
+            demo/target/surefire-reports
+          if-no-files-found: warn
+
   package:
     name: Package Application
     runs-on: ubuntu-latest
@@ -127,3 +136,13 @@ jobs:
 
       - name: Run integration tests
         run: ./mvnw -DskipTests package failsafe:integration-test failsafe:verify
+
+      - name: Upload integration test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-reports
+          path: |
+            demo/target/failsafe-reports
+            demo/target/surefire-reports
+          if-no-files-found: warn
