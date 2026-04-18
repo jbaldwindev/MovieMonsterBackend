@@ -2,15 +2,12 @@ package com.MovieMonster.demo.Controllers;
 
 import com.MovieMonster.demo.Repositories.RoleRepository;
 import com.MovieMonster.demo.Repositories.UserRepository;
-import com.MovieMonster.demo.Security.CustomUserDetailsService;
 import com.MovieMonster.demo.Security.JWTGenerator;
-import com.MovieMonster.demo.Security.JwtAuthEntryPoint;
-import com.MovieMonster.demo.Security.SecurityConfig;
 import com.MovieMonster.demo.Services.MovieService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,7 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(AuthController.class)
-@Import(SecurityConfig.class)
+@AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("test")
 class AuthControllerTest {
 
@@ -47,12 +44,6 @@ class AuthControllerTest {
 
     @MockBean
     private JWTGenerator jwtGenerator;
-
-    @MockBean
-    private CustomUserDetailsService customUserDetailsService;
-
-    @MockBean
-    private JwtAuthEntryPoint jwtAuthEntryPoint;
 
     @Test
     void meReturnsUnauthorizedWhenAuthenticationIsMissing() throws Exception {
