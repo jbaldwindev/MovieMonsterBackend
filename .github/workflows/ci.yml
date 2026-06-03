@@ -179,6 +179,7 @@ jobs:
   trigger-staging-deploy:
     name: Trigger Staging Deploy
     runs-on: ubuntu-latest
+    environment: staging
     needs:
       - docker-build
       - integration-tests
