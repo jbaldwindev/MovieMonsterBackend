@@ -1,6 +1,7 @@
 name: CI
 
 on:
+  workflow_dispatch: 
   push:
   pull_request:
 
@@ -181,8 +182,7 @@ jobs:
     needs:
       - docker-build
       - integration-tests
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     steps:
       - name: Trigger staging deploy
         env:
