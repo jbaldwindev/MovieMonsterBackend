@@ -188,7 +188,7 @@ jobs:
       - name: Trigger staging deploy
         env:
           GH_TOKEN: ${{ secrets.INFRA_REPO_TOKEN }}
-          INFRA_REPO: jbaldwin215/moviemonster-infra
+          INFRA_REPO: jbaldwin215/MovieMonsterInfra
         run: |
           curl --fail-with-body -X POST \
             -H "Authorization: Bearer $GH_TOKEN" \
