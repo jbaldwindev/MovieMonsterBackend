@@ -3,26 +3,22 @@ package com.MovieMonster.demo.Services;
 import com.MovieMonster.demo.Dto.*;
 import com.MovieMonster.demo.Models.*;
 import com.MovieMonster.demo.Repositories.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.json.*;
-
-import java.time.Duration;
 import java.util.*;
 
 @Service
 public class MovieService {
-    private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(3);
-    private WebClient apiClient;
-    private UserRepository userRepository;
-    private MovieListRepository movieListRepository;
-    private MovieRatingRepository movieRatingRepository;
-    private MovieRepository movieRepository;
-    private MovieCommentRepository movieCommentRepository;
-    private CommentLikeRepository commentLikeRepository;
-    private UserService userService;
+    private final WebClient apiClient;
+    private final UserRepository userRepository;
+    private final MovieListRepository movieListRepository;
+    private final MovieRatingRepository movieRatingRepository;
+    private final MovieRepository movieRepository;
+    private final MovieCommentRepository movieCommentRepository;
+    private final CommentLikeRepository commentLikeRepository;
+    private final UserService userService;
 
     public MovieService(
             UserService userService,
@@ -55,12 +51,11 @@ public class MovieService {
         String jsonResponse = apiClient
                 .get()
                 .uri(fullUri)
-                .exchange()
-                .block()
+                .retrieve()
                 .bodyToMono(String.class)
                 .block();
         MovieListDto movieListDto = new MovieListDto();
-        ArrayList<MovieSearchDto> movieSearchList = new ArrayList<MovieSearchDto>();
+        ArrayList<MovieSearchDto> movieSearchList = new ArrayList<>();
         JSONObject obj = new JSONObject(jsonResponse);
         JSONArray jsonArray = obj.getJSONArray("results");
         int maxResults = 5;
@@ -93,7 +88,7 @@ public class MovieService {
                 .bodyToMono(String.class)
                 .block();
         MovieListDto movieListDto = new MovieListDto();
-        ArrayList<MovieSearchDto> movieSearchList = new ArrayList<MovieSearchDto>();
+        ArrayList<MovieSearchDto> movieSearchList = new ArrayList<>();
         JSONObject obj = new JSONObject(jsonResponse);
         int totalPages = obj.getInt("total_pages");
         movieListDto.setTotalPages(totalPages);
@@ -105,7 +100,6 @@ public class MovieService {
             JSONObject movieJsonObj = jsonArray.getJSONObject(i);
             MovieSearchDto movieSearchDto = new MovieSearchDto();
             movieSearchDto.setId(movieJsonObj.getInt("id"));
-            String posterPath;
             try {
                 if (movieJsonObj.has("poster_path")&& !movieJsonObj.isNull("poster_path")) {
                     movieSearchDto.setPosterPath("https://image.tmdb.org/t/p/original" + movieJsonObj.getString("poster_path"));
@@ -125,7 +119,7 @@ public class MovieService {
         if (retrievedUser.isPresent()) {
             UserEntity user = retrievedUser.get();
             MovieList movieList = new MovieList();
-            ArrayList<MovieRating> movieRatings = new ArrayList<MovieRating>();
+            ArrayList<MovieRating> movieRatings = new ArrayList<>();
             movieList.setMovieRatingList(movieRatings);
             user.setMovieList(movieList);
             movieListRepository.save(movieList);
@@ -180,7 +174,7 @@ public class MovieService {
         return null;
     }
 
-    public void deleteRating(String username, int ratingId) {
+    public void deleteRating(int ratingId) {
         movieRatingRepository.deleteById(ratingId);
     }
 
@@ -189,7 +183,7 @@ public class MovieService {
         if (retrievedUser.isPresent()) {
             UserEntity user = retrievedUser.get();
             List<MovieRating> movieRatingList = user.getMovieList().getMovieRatingList();
-            Collections.sort(movieRatingList, new Comparator<MovieRating>() {
+            Collections.sort(movieRatingList, new Comparator<>() {
                 public int compare(MovieRating m1, MovieRating m2) {
                     return m2.getRating().compareTo(m1.getRating());
                 }
@@ -197,7 +191,7 @@ public class MovieService {
             if (sortOrder == SortOrder.ASC) {
                 Collections.reverse(movieRatingList);
             }
-            ArrayList<MovieRatingDto> movieRatingArrList = new ArrayList<MovieRatingDto>();
+            ArrayList<MovieRatingDto> movieRatingArrList = new ArrayList<>();
             for (MovieRating rating : movieRatingList) {
                 MovieRatingDto movieRatingDto = new MovieRatingDto();
                 movieRatingDto.setRatingId(rating.getId());
@@ -218,7 +212,7 @@ public class MovieService {
             Movie movie = fetchedMovie.get();
             CommentListDto commentListDto = new CommentListDto();
             commentListDto.setMovieId(commentRequestDto.getMovieId());
-            ArrayList<MovieCommentDto> movieCommentArrList = new ArrayList<MovieCommentDto>();
+            ArrayList<MovieCommentDto> movieCommentArrList = new ArrayList<>();
             for (MovieComment comment : movie.getMovieCommentList()) {
                 MovieCommentDto newCommentDto = new MovieCommentDto();
                 newCommentDto.setMovieId(comment.getMovie().getMovieId());
@@ -231,14 +225,13 @@ public class MovieService {
                 for (CommentLike commentLike : comment.getCommentLikeList()) {
                     if (commentLike.getUsername().equals(commentRequestDto.getUsername())) {
                         usernameFound = true;
+                        break;
                     }
                 }
                 newCommentDto.setCurrentUserLiked(usernameFound);
                 movieCommentArrList.add(newCommentDto);
             }
             commentListDto.setCommentList(movieCommentArrList);
-            if (commentListDto.getCommentList().size() > 1) {
-            }
             return commentListDto;
         }
         return new CommentListDto();
@@ -305,13 +298,13 @@ public class MovieService {
             movie.setMovieId(movieId);
             movie.setOriginalTitle(movieInfoDto.getTitle());
             movie.setOverview(movieInfoDto.getOverview());
-            movie.setMovieCommentList(new ArrayList<MovieComment>());
+            movie.setMovieCommentList(new ArrayList<>());
             movie.setPosterPath(movieInfoDto.getPosterPath());
             MovieComment movieComment = new MovieComment();
             movieComment.setMovieComment(movieCommentDto.getComment());
             movieComment.setUsername(movieCommentDto.getUsername());
             movieComment.setMovie(movie);
-            List<MovieComment> movieCommentList = new ArrayList<MovieComment>();
+            List<MovieComment> movieCommentList = new ArrayList<>();
             movieCommentList.add(movieComment);
             movie.setMovieCommentList(movieCommentList);
             movieRepository.save(movie);
@@ -341,7 +334,7 @@ public class MovieService {
         movieInfoDto.setTagline(obj.getString("tagline"));
         movieInfoDto.setReleaseDate(obj.getString("release_date"));
         JSONArray genreJSONData = obj.getJSONArray("genres");
-        ArrayList<String> genreList = new ArrayList<String>();
+        ArrayList<String> genreList = new ArrayList<>();
         for (int i = 0; i < genreJSONData.length(); i++) {
             JSONObject genreObj = genreJSONData.getJSONObject(i);
             String genreName = genreObj.getString("name");
@@ -349,7 +342,7 @@ public class MovieService {
         }
         movieInfoDto.setGenres(genreList);
         JSONArray companiesJSONData = obj.getJSONArray("production_companies");
-        ArrayList<String> companyList = new ArrayList<String>();
+        ArrayList<String> companyList = new ArrayList<>();
         for (int i = 0; i < companiesJSONData.length(); i++) {
             JSONObject companyObj = companiesJSONData.getJSONObject(i);
             String companyName = companyObj.getString("name");
@@ -403,7 +396,7 @@ public class MovieService {
         JSONArray results = obj.getJSONArray("results");
         MovieListDto movieListDto = new MovieListDto();
         movieListDto.setTotalPages(obj.getInt("total_pages"));
-        movieListDto.setMovieList(new ArrayList<Movie>());
+        movieListDto.setMovieList(new ArrayList<>());
         for (int i = 0; i < results.length(); i++) {
             Movie movie = new Movie();
             movie.setId(results.getJSONObject(i).getInt("id"));

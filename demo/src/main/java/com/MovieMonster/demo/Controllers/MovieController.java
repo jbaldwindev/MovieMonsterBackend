@@ -36,7 +36,6 @@ public class MovieController {
     @PostMapping("/unlike-comment")
     public ResponseEntity<String> unlikeComment(@RequestBody CommentLikeDto commentLikeDto) {
         System.out.println("unlike request received");
-        //TODO call function in movieService
         movieService.unlikeComment(commentLikeDto);
         return new ResponseEntity<>("Like removed from comment", HttpStatus.OK);
     }
@@ -81,7 +80,7 @@ public class MovieController {
     @DeleteMapping("/delete-rating/{username}/{ratingId}")
     public ResponseEntity<String> deleteRating(@PathVariable String username, @PathVariable int ratingId) {
         System.out.println("Deleting rating with id " + ratingId);
-        movieService.deleteRating(username, ratingId);
+        movieService.deleteRating(ratingId);
         return new ResponseEntity<>("Rating deleted!", HttpStatus.OK);
     }
 

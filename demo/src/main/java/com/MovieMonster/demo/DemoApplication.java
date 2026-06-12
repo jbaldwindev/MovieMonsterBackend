@@ -6,7 +6,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-//TODO remember to remove data source exclusion
 @EnableJpaRepositories("com.MovieMonster.demo.Repositories")
 @EnableAutoConfiguration
 @SpringBootApplication()
