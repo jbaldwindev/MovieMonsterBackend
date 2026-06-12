@@ -1,0 +1,6 @@
+### VS Code ###
+.vscode/
+/src/main/resources/local.application.properties
+
+### ENV VARS ###
+.env
