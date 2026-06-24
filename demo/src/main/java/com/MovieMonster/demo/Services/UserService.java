@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -160,12 +161,15 @@ public class UserService {
         }
     }
 
-    public void handleRequestResponse(RequestResponseDto requestResponseDto) {
+    public void handleRequestResponse(RequestResponseDto requestResponseDto, String authenticatedUsername) {
         Optional<FriendRequest> retrievedRequest = friendRequestRepository.findById(requestResponseDto.getRequestId());
         if (retrievedRequest.isPresent()) {
             FriendRequest friendRequest = retrievedRequest.get();
             UserEntity sender = friendRequest.getSender();
             UserEntity receiver = friendRequest.getReceiver();
+            if (!receiver.getUsername().equals(authenticatedUsername)) {
+                throw new AccessDeniedException("Only the request receiver can respond to it");
+            }
             if (requestResponseDto.getIsAccepted()) {
                 addFriend(sender.getUsername(), receiver.getUsername());
             }
@@ -405,11 +409,11 @@ public class UserService {
         }
     }
 
-    public ResponseEntity<String> setBio(BioDto bioDto) {
-        Optional<UserEntity> retrievedUser = userRepository.findByUsername(bioDto.getUsername());
+    public ResponseEntity<String> setBio(String username, String bio) {
+        Optional<UserEntity> retrievedUser = userRepository.findByUsername(username);
         if (retrievedUser.isPresent()) {
             UserEntity user = retrievedUser.get();
-            user.setBio(bioDto.getBio());
+            user.setBio(bio);
             userRepository.save(user);
             return new ResponseEntity<>("Bio successfully updated!", HttpStatus.OK);
         } else {

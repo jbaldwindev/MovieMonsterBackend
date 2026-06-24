@@ -5,6 +5,8 @@ import com.MovieMonster.demo.Services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
@@ -17,20 +19,24 @@ public class UserController {
     UserService userService;
 
     @PostMapping("/add-friend/{username}")
-    public ResponseEntity<String> AddFriend(@PathVariable String username, @RequestParam("friend") String friendUsername) {
+    public ResponseEntity<String> AddFriend(@PathVariable String username, @RequestParam("friend") String friendUsername,
+                                            Authentication authentication) {
+        requireOwnAccount(username, authentication);
         userService.addFriend(username, friendUsername);
         return new ResponseEntity<>("Friend added!", HttpStatus.OK);
     }
 
     @PostMapping("/request-response")
-    public ResponseEntity<String> RespondRequest(@RequestBody RequestResponseDto requestResponseDto) {
-        userService.handleRequestResponse(requestResponseDto);
+    public ResponseEntity<String> RespondRequest(@RequestBody RequestResponseDto requestResponseDto,
+                                                 Authentication authentication) {
+        userService.handleRequestResponse(requestResponseDto, authentication.getName());
         return new ResponseEntity<>("Friend request response handled!", HttpStatus.OK);
     }
 
     @PostMapping("/send-request")
-    public ResponseEntity<String> SendRequest(@RequestBody SendRequestDto sendRequestDto) {
-        userService.sendRequest(sendRequestDto.getSenderUsername(), sendRequestDto.getReceiverUsername());
+    public ResponseEntity<String> SendRequest(@RequestBody SendRequestDto sendRequestDto,
+                                              Authentication authentication) {
+        userService.sendRequest(authentication.getName(), sendRequestDto.getReceiverUsername());
         return new ResponseEntity<>("Request sent!", HttpStatus.OK);
     }
 
@@ -51,13 +57,17 @@ public class UserController {
 
     @DeleteMapping("{sender}/requests/{receiver}")
     public ResponseEntity<String> deleteFriendRequest(@PathVariable String sender,
-                                                      @PathVariable String receiver) {
+                                                      @PathVariable String receiver,
+                                                      Authentication authentication) {
+        requireOwnAccount(sender, authentication);
         userService.deleteFriendRequest(sender, receiver);
         return new ResponseEntity<>("Request successfully deleted", HttpStatus.OK);
     }
 
     @DeleteMapping("{user1}/friends/{user2}")
-    public ResponseEntity<String> RemoveFriend(@PathVariable String user1, @PathVariable String user2) {
+    public ResponseEntity<String> RemoveFriend(@PathVariable String user1, @PathVariable String user2,
+                                               Authentication authentication) {
+        requireOwnAccount(user1, authentication);
         userService.removeFriend(user1, user2);
         return new ResponseEntity<>("Friend successfully removed!", HttpStatus.OK);
     }
@@ -73,7 +83,9 @@ public class UserController {
     }
 
     @PostMapping("/upload-icon/{username}")
-    public ResponseEntity<String> UploadIcon(@RequestParam("file") MultipartFile file, @PathVariable String username) {
+    public ResponseEntity<String> UploadIcon(@RequestParam("file") MultipartFile file, @PathVariable String username,
+                                             Authentication authentication) {
+        requireOwnAccount(username, authentication);
         return userService.UploadIcon(file, username);
     }
 
@@ -88,12 +100,16 @@ public class UserController {
     }
 
     @PostMapping("/{username}/favorites/add")
-    public ResponseEntity<String> AddFavorite(@PathVariable String username, @RequestParam int movieId) {
+    public ResponseEntity<String> AddFavorite(@PathVariable String username, @RequestParam int movieId,
+                                              Authentication authentication) {
+        requireOwnAccount(username, authentication);
         return userService.addFavorite(username, movieId);
     }
 
     @DeleteMapping("/{username}/favorites/remove")
-    public ResponseEntity<String> RemoveFavorite(@PathVariable String username, @RequestParam int movieId) {
+    public ResponseEntity<String> RemoveFavorite(@PathVariable String username, @RequestParam int movieId,
+                                                 Authentication authentication) {
+        requireOwnAccount(username, authentication);
         return userService.removeFavorite(username, movieId);
     }
 
@@ -103,17 +119,18 @@ public class UserController {
     }
 
     @PostMapping("/favorites/rank")
-    public ResponseEntity<String> ChangeFavoritesRanking(@RequestBody RankingRequestDto rankingRequestDto) {
+    public ResponseEntity<String> ChangeFavoritesRanking(@RequestBody RankingRequestDto rankingRequestDto,
+                                                         Authentication authentication) {
         return userService.changeFavoritesRanking(
-                rankingRequestDto.getUsername(),
+                authentication.getName(),
                 rankingRequestDto.getMovieId(),
                 rankingRequestDto.getRankingDirection()
         );
     }
 
     @PostMapping("/bio")
-    public ResponseEntity<String> SetBio(@RequestBody BioDto bioDto) {
-        return userService.setBio(bioDto);
+    public ResponseEntity<String> SetBio(@RequestBody BioDto bioDto, Authentication authentication) {
+        return userService.setBio(authentication.getName(), bioDto.getBio());
     }
 
     @GetMapping("/{username}/bio")
@@ -123,4 +140,10 @@ public class UserController {
 
     @GetMapping("/auth/user-exists/{username}")
     public ResponseEntity<Boolean> IsUsernameTaken(@PathVariable String username) { return userService.isUsernameTaken(username); }
+
+    private void requireOwnAccount(String username, Authentication authentication) {
+        if (!authentication.getName().equals(username)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot modify another user's account");
+        }
+    }
 }
