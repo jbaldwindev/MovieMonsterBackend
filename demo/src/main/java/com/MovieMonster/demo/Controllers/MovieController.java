@@ -22,21 +22,27 @@ public class MovieController {
     }
 
     @PostMapping("/post-comment")
-    public ResponseEntity<String> postMovieComment(@RequestBody MovieCommentDto movieCommentDto) {
+    public ResponseEntity<String> postMovieComment(@RequestBody MovieCommentDto movieCommentDto,
+                                                   Authentication authentication) {
+        movieCommentDto.setUsername(authentication.getName());
         movieService.postComment(movieCommentDto);
         return new ResponseEntity<>("Comment posted!", HttpStatus.OK);
     }
 
     @PostMapping("/like-comment")
-    public ResponseEntity<String> likeComment(@RequestBody CommentLikeDto commentLikeDto) {
+    public ResponseEntity<String> likeComment(@RequestBody CommentLikeDto commentLikeDto,
+                                              Authentication authentication) {
         System.out.println("initial request received");
+        commentLikeDto.setUsername(authentication.getName());
         movieService.likeComment(commentLikeDto);
         return new ResponseEntity<>("Comment liked!", HttpStatus.OK);
     }
 
     @PostMapping("/unlike-comment")
-    public ResponseEntity<String> unlikeComment(@RequestBody CommentLikeDto commentLikeDto) {
+    public ResponseEntity<String> unlikeComment(@RequestBody CommentLikeDto commentLikeDto,
+                                                Authentication authentication) {
         System.out.println("unlike request received");
+        commentLikeDto.setUsername(authentication.getName());
         movieService.unlikeComment(commentLikeDto);
         return new ResponseEntity<>("Like removed from comment", HttpStatus.OK);
     }
