@@ -93,8 +93,8 @@ public class AuthController {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        String accessToken = jwtGenerator.generateToken(authentication, 900000);
-        String refreshToken = jwtGenerator.generateToken(authentication, 604800000);
+        String accessToken = jwtGenerator.generateToken(authentication, 900000, "access");
+        String refreshToken = jwtGenerator.generateToken(authentication, 604800000, "refresh");
 
         ResponseCookie accessCookie = buildCookie("accessToken", accessToken, 900, request);
         ResponseCookie refreshCookie = buildCookie("refreshToken", refreshToken, 604800, request);
@@ -110,12 +110,13 @@ public class AuthController {
             @CookieValue(name = "refreshToken", required = false) String refreshToken,
             HttpServletRequest request
     ) {
-        if (refreshToken == null || !jwtGenerator.validateToken(refreshToken)) {
+        if (refreshToken == null || !jwtGenerator.validateToken(refreshToken)
+                || !"refresh".equals(jwtGenerator.getTokenType(refreshToken))) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         String username = jwtGenerator.getUsernameFromJWT(refreshToken);
-        String newAccessToken = jwtGenerator.generateTokenFromUsername(username, 900000);
+        String newAccessToken = jwtGenerator.generateTokenFromUsername(username, 900000, "access");
 
         ResponseCookie accessCookie = buildCookie("accessToken", newAccessToken, 900, request);
 
