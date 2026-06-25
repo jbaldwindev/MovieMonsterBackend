@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -98,6 +99,14 @@ class SecurityConfigTest {
                 .andExpect(cookie().httpOnly("XSRF-TOKEN", false));
     }
 
+    @Test
+    void csrfBootstrapEndpointIsPublicAndIssuesReadableCsrfCookie() throws Exception {
+        mockMvc.perform(get("/api/auth/csrf"))
+                .andExpect(status().isOk())
+                .andExpect(cookie().exists("XSRF-TOKEN"))
+                .andExpect(cookie().httpOnly("XSRF-TOKEN", false));
+    }
+
     private void authenticatedJwtCookie() {
         UserDetails userDetails = User.withUsername("alice")
                 .password("password")
@@ -154,6 +163,11 @@ class SecurityConfigTest {
         @GetMapping("/api/user/csrf-check")
         String csrfCheck(Authentication authentication) {
             return authentication.getName();
+        }
+
+        @GetMapping("/api/auth/csrf")
+        String csrf(CsrfToken csrfToken) {
+            return csrfToken.getToken();
         }
     }
 }
