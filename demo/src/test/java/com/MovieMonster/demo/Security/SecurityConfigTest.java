@@ -107,6 +107,21 @@ class SecurityConfigTest {
                 .andExpect(cookie().httpOnly("XSRF-TOKEN", false));
     }
 
+    @Test
+    void refreshRequiresCsrfToken() throws Exception {
+        mockMvc.perform(post("/api/auth/refresh")
+                        .cookie(new Cookie("refreshToken", "valid-refresh-token")))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void refreshWithCsrfTokenCanReachController() throws Exception {
+        mockMvc.perform(post("/api/auth/refresh")
+                        .with(csrf())
+                        .cookie(new Cookie("refreshToken", "valid-refresh-token")))
+                .andExpect(status().isOk());
+    }
+
     private void authenticatedJwtCookie() {
         UserDetails userDetails = User.withUsername("alice")
                 .password("password")
@@ -168,6 +183,11 @@ class SecurityConfigTest {
         @GetMapping("/api/auth/csrf")
         String csrf(CsrfToken csrfToken) {
             return csrfToken.getToken();
+        }
+
+        @PostMapping("/api/auth/refresh")
+        String refresh() {
+            return "refreshed";
         }
     }
 }
