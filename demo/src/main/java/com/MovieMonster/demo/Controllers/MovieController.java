@@ -6,6 +6,7 @@ import com.MovieMonster.demo.Services.MovieService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -57,9 +58,9 @@ public class MovieController {
     }
 
     @PostMapping("/rate")
-    public ResponseEntity<String> rateMovie(@RequestBody MovieRatingDto movieRatingDto) {
+    public ResponseEntity<String> rateMovie(@RequestBody MovieRatingDto movieRatingDto, Authentication authentication) {
         movieService.rateMovie(
-                movieRatingDto.getUsername(),
+                authentication.getName(),
                 movieRatingDto.getMovieTitle(),
                 movieRatingDto.getMovieId(),
                 movieRatingDto.getMovieRating());
@@ -78,9 +79,13 @@ public class MovieController {
     }
 
     @DeleteMapping("/delete-rating/{username}/{ratingId}")
-    public ResponseEntity<String> deleteRating(@PathVariable String username, @PathVariable int ratingId) {
+    public ResponseEntity<String> deleteRating(@PathVariable String username, @PathVariable int ratingId,
+                                               Authentication authentication) {
         System.out.println("Deleting rating with id " + ratingId);
-        movieService.deleteRating(ratingId);
+        boolean deleted = movieService.deleteRatingOwnedBy(ratingId, authentication.getName());
+        if (!deleted) {
+            return new ResponseEntity<>("Rating not found!", HttpStatus.NOT_FOUND);
+        }
         return new ResponseEntity<>("Rating deleted!", HttpStatus.OK);
     }
 

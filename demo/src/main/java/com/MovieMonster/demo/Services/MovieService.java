@@ -178,6 +178,23 @@ public class MovieService {
         movieRatingRepository.deleteById(ratingId);
     }
 
+    public boolean deleteRatingOwnedBy(int ratingId, String username) {
+        Optional<UserEntity> retrievedUser = userRepository.findByUsername(username);
+        Optional<MovieRating> retrievedRating = movieRatingRepository.findById(ratingId);
+        if (retrievedUser.isEmpty() || retrievedRating.isEmpty()) {
+            return false;
+        }
+
+        MovieList userMovieList = retrievedUser.get().getMovieList();
+        MovieList ratingMovieList = retrievedRating.get().getMovieList();
+        if (userMovieList == null || ratingMovieList == null || userMovieList.getId() != ratingMovieList.getId()) {
+            return false;
+        }
+
+        movieRatingRepository.deleteById(ratingId);
+        return true;
+    }
+
     public ArrayList<MovieRatingDto> getUserMovieList(String username, SortOrder sortOrder) {
         Optional<UserEntity> retrievedUser = userRepository.findByUsername(username);
         if (retrievedUser.isPresent()) {
