@@ -12,11 +12,18 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -86,6 +93,7 @@ public class SecurityConfig {
                 .httpBasic(withDefaults());
 
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterAfter(csrfCookieFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
@@ -103,5 +111,21 @@ public class SecurityConfig {
     @Bean
     public JWTAuthenticationFilter jwtAuthenticationFilter() {
         return new JWTAuthenticationFilter();
+    }
+
+    @Bean
+    public OncePerRequestFilter csrfCookieFilter() {
+        return new OncePerRequestFilter() {
+            @Override
+            protected void doFilterInternal(HttpServletRequest request,
+                                            HttpServletResponse response,
+                                            FilterChain filterChain) throws ServletException, IOException {
+                CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
+                if (csrfToken != null) {
+                    csrfToken.getToken();
+                }
+                filterChain.doFilter(request, response);
+            }
+        };
     }
 }

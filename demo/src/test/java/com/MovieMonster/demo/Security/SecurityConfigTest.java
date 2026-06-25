@@ -17,6 +17,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.WebApplicationContext;
@@ -26,7 +27,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringJUnitConfig(SecurityConfigTest.TestConfig.class)
@@ -84,6 +87,17 @@ class SecurityConfigTest {
                 .andExpect(status().isOk());
     }
 
+    @Test
+    void authenticatedGetIssuesReadableCsrfCookie() throws Exception {
+        authenticatedJwtCookie();
+
+        mockMvc.perform(get("/api/user/csrf-check")
+                        .cookie(new Cookie("accessToken", "valid-token")))
+                .andExpect(status().isOk())
+                .andExpect(cookie().exists("XSRF-TOKEN"))
+                .andExpect(cookie().httpOnly("XSRF-TOKEN", false));
+    }
+
     private void authenticatedJwtCookie() {
         UserDetails userDetails = User.withUsername("alice")
                 .password("password")
@@ -134,6 +148,11 @@ class SecurityConfigTest {
     static class TestMutationController {
         @PostMapping("/api/user/bio")
         String mutate(Authentication authentication) {
+            return authentication.getName();
+        }
+
+        @GetMapping("/api/user/csrf-check")
+        String csrfCheck(Authentication authentication) {
             return authentication.getName();
         }
     }
